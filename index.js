@@ -19,18 +19,18 @@ const puppeteer = require('puppeteer');
 
   
     //acessando a pagina de ponto
-    await page.goto('https://prweb01/bahia/gateway');
+    await page.goto(HOST);
     console.log("Acessando o site...")
 
     //incluindo id da empresa
-    await page.type('[name="CD_EMPGCB_FUN"]', '49');
+    await page.type('[name="CD_EMPGCB_FUN"]', ID_EMPRESA);
 
     //incluindo matricula do funcionario
-    await page.type('[name="CD_FUN"]', '60012569');
+    await page.type('[name="CD_FUN"]', MATRICULA);
     console.log("Digitando matricula...")
 
     //incluindo senha
-    await page.type('[name="CD_USRSGR_SNH_CPL"]', 'Olivia20');
+    await page.type('[name="CD_USRSGR_SNH_CPL"]', SENHA);
     console.log("Digitando senha...")
 
     //clica no primeiro botão processar
@@ -50,7 +50,7 @@ const puppeteer = require('puppeteer');
     await page.waitForNavigation();
 
     //clica no terceiro botão processar
-    //await page.click('[id="NM_BOT_PRC"]');
+    await page.click('[id="NM_BOT_PRC"]');
     console.log("Marcando ponto...")
 
     await page.waitForNavigation();
@@ -62,7 +62,7 @@ const puppeteer = require('puppeteer');
     //clina no botão de sair
     await page.click('[id="NM_BOT_FIM"]');
 
-    //await browser.close();
+    await browser.close();
 
   } catch (error){
     console.log("SITE FORA OU SEM VPN: " + error);
