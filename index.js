@@ -1,73 +1,41 @@
-require('dotenv').config();
-const puppeteer = require('puppeteer');
+const CronJob = require('cron').CronJob
+const bate_ponto = require('./bate-ponto')
+const random = require('./random')
 
+const min_entrada = 0
+const max_entrada = 35
+const min_saida = 48
+const max_saida = 52
+var hora_saida = 18
+var cron_entrada = random.between(min_entrada,max_entrada)
+var cron_saida = random.between(min_saida,max_saida)
+var minuto_saida = cron_entrada + cron_saida
 
-(async () => {
+if(minuto_saida>=60){
+  hora_saida += 1;
+  minuto_saida = (cron_entrada+cron_saida) % 60
+}
 
-  const browser = await puppeteer.launch({ args: ['--disable-setuid-sandbox',
-  '--no-sandbox',
-  '--ignore-certificate-errors'],
-  product: 'firefox', 
-  ignoreHTTPSErrors: true, 
-  headless: true});
-  try{
-  const page = await browser.newPage();
-  const HOST = process.env.HOST
-  const ID_EMPRESA = process.env.ID_EMPRESA
-  const MATRICULA = process.env.MATRICULA
-  const SENHA = process.env.SENHA
+console.log('sua entrada vai ser 9:'+cron_entrada);
+console.log('sua saida vai ser '+ hora_saida+':'+minuto_saida);
 
-  
-    //acessando a pagina de ponto
-    await page.goto(HOST);
-    console.log("Acessando o site...")
+const entrada = new CronJob(cron_entrada+' 9 * * 1-5', () => {
+  console.log('Iniciando cronJOB para bater o ponto de entrada as 09:'+cron_entrada)
+  bate_ponto.aponta()
+}, null, true, 'America/Sao_Paulo')
 
-    //incluindo id da empresa
-    await page.type('[name="CD_EMPGCB_FUN"]', ID_EMPRESA);
+const almoco = new CronJob('10 12 * * 1-5', () => {
+  console.log('Iniciando cronJOB para bater o ponto do almoço as 12:10')
+  bate_ponto.aponta()
+}, null, true, 'America/Sao_Paulo')
 
-    //incluindo matricula do funcionario
-    await page.type('[name="CD_FUN"]', MATRICULA);
-    console.log("Digitando matricula...")
+const volta_almoco = new CronJob('11 13 * * 1-5', () => {
+  console.log('Iniciando cronJOB para bater o ponto da volta do almoço as 13:11')
+  bate_ponto.aponta()
+}, null, true, 'America/Sao_Paulo')
 
-    //incluindo senha
-    await page.type('[name="CD_USRSGR_SNH_CPL"]', SENHA);
-    console.log("Digitando senha...")
-
-    //clica no primeiro botão processar
-    await page.click('[name="NM_BOT_PRC"]');
-    console.log("Logando no site...")
-
-    await page.waitForNavigation();
-
-    //Seleciona a opção de marcação de ponto pelo css
-    await page.click('body > form:nth-child(2) > table:nth-child(3) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > select:nth-child(1) > option:nth-child(5)');
-    console.log("Selecionando a marcação de ponto...")
-
-    //clica no segundo botão processar
-    await page.click('[name="NM_BOT_PRC"]');
-    console.log("Processando...")
-
-    await page.waitForNavigation();
-
-    //clica no terceiro botão processar
-    await page.click('[id="NM_BOT_PRC"]');
-    console.log("Marcando ponto...")
-
-    await page.waitForNavigation();
-
-    //bate um print
-    await page.screenshot({ path: 'ponto.png' });
-    console.log("Ponto marcado com sucesso, printando...")
-
-    //clina no botão de sair
-    await page.click('[id="NM_BOT_FIM"]');
-
-    await browser.close();
-
-  } catch (error){
-    console.log("SITE FORA OU SEM VPN: " + error);
-    //await page.screenshot({ path: 'erro.png' });
-    await browser.close();
-  }
-  
-})()
+const saida = new CronJob(minuto_saida+' '+hora_saida+' * * 1-5', () => {
+  console.log('Iniciando cronJOB para bater o ponto de saida as 18:'+minuto_saida)
+  bate_ponto.aponta()
+  process.exit(1)
+}, null, true, 'America/Sao_Paulo')

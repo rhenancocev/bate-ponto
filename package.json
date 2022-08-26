@@ -6,11 +6,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "start": "forever start index.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cron": "^2.1.0",
     "dotenv": "^16.0.1",
+    "forever": "^4.0.3",
     "puppeteer": "^16.1.1"
   }
 }
