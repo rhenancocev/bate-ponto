@@ -2,6 +2,8 @@ const CronJob = require('cron').CronJob
 const bate_ponto = require('./bate-ponto')
 const random = require('./random')
 
+const timeElapsed = Date.now();
+const today = new Date(timeElapsed);
 const min_entrada = 0;
 const max_entrada = 35;
 const min_saida = 48;
@@ -20,6 +22,7 @@ if(minuto_saida >= 60){
   minuto_saida = (cron_entrada + cron_saida) % 60
 }
 
+console.log('===================== ' + today.toLocaleDateString() + ' =====================')
 console.log('Sua entrada vai ser 9:' + cron_entrada);
 console.log('Sua entrada do almoço vai ser 12:'+ cron_entrada_almoco);
 console.log('Sua saida do almoço vai ser 13:'+ minuto_saida_almoco);
