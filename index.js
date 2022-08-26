@@ -17,7 +17,7 @@ var minuto_saida_almoco = (cron_entrada_almoco + 62) % 60;
 
 if(minuto_saida >= 60){
   hora_saida += 1;
-  minuto_saida = (cron_entrada+cron_saida) % 60
+  minuto_saida = (cron_entrada + cron_saida) % 60
 }
 
 console.log('Sua entrada vai ser 9:' + cron_entrada);
@@ -27,7 +27,7 @@ console.log('Sua saida vai ser '+ hora_saida + ':' + minuto_saida);
 console.log('===================== AGUARDANDO SCHEDULE =====================')
 
 const entrada = new CronJob(cron_entrada + ' 9 * * 1-5', () => {
-  console.log('Iniciando cronJOB para bater o ponto de entrada as 09:'+cron_entrada)
+  console.log('Iniciando cronJOB para bater o ponto de entrada as 09:' + cron_entrada)
   bate_ponto.aponta()
 }, null, true, 'America/Sao_Paulo')
 
