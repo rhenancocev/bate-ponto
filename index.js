@@ -47,5 +47,9 @@ const volta_almoco = new CronJob(minuto_saida_almoco + ' 13 * * 1-5', () => {
 const saida = new CronJob(minuto_saida + ' ' + hora_saida + ' * * 1-5', () => {
   console.log('Iniciando cronJOB para bater o ponto de saida as ' + hora_saida + ':' + minuto_saida)
   bate_ponto.aponta()
+}, null, true, 'America/Sao_Paulo')
+
+const restarta_random = new CronJob('* 0 * * 1-5', () => {
+  console.log('Iniciando cronJOB para restartar o processo')
   process.exit(1)
 }, null, true, 'America/Sao_Paulo')
