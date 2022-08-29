@@ -1,14 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 require('dotenv').config();
 const bate_ponto = require('./bate-ponto')
-
-const teste = require('./teste')
-
 const agendamento = require('./agendamento-bate-ponto')
-
 const token = process.env.TOKEN;
 const chat_id = 621550962;
-// replace the value below with the Telegram token you receive from @BotFather
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, { polling: true });
