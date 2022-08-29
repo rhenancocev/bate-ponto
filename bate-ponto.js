@@ -1,7 +1,7 @@
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 
-function aponta () {(async () => {
+function aponta (ctx,bot) {(async () => {
 
     const browser = await puppeteer.launch({ args: ['--disable-setuid-sandbox',
     '--no-sandbox',
@@ -51,7 +51,7 @@ function aponta () {(async () => {
       console.log("Processando...")
   
       await page.waitForNavigation();
-  
+
       //clica no terceiro botão processar
       await page.click('[id="NM_BOT_PRC"]');
       console.log("Marcando ponto...")
@@ -61,17 +61,21 @@ function aponta () {(async () => {
       //bate um print
       await page.screenshot({ path: 'ponto.png' });
       console.log("Ponto marcado com sucesso, printando...")
+      bot.sendMessage(ctx, "Ponto batido com sucesso: ");
+      bot.sendMediaGroup(ctx, [{type: 'photo',media: './ponto.png'}]);
   
       //clina no botão de sair
       await page.click('[id="NM_BOT_FIM"]');
   
       await browser.close();
       console.log("Fechando browser...")
+      bot.sendMessage(ctx, "Processamento finalizado!");
       console.log("=====================================================")
   
     } catch (error){
       console.log("SITE FORA OU SEM VPN: " + error);
       //await page.screenshot({ path: 'erro.png' });
+      bot.sendMessage(ctx, "Erro ao bater o ponto, log:\n\n" + error);
       await browser.close();
     }
     
