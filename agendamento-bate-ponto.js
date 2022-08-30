@@ -80,7 +80,14 @@ async function cronActive (ctx,bot,status){
             saida.cancel()
             console.log('cancelados')
             schedule.gracefulShutdown();
+            bot.sendMessage(chatId, 'Todos os schedules serão cancelados:  \n'
+            + '\nEntrada 9:' + cron_entrada + ' cancelado'
+            + '\nEntrada do almoço 12:'+ cron_entrada_almoco  + ' cancelado'
+            + '\nSaida do almoço 13:'+ minuto_saida_almoco  + ' cancelado'
+            + '\nSaida'+ hora_saida + ':' + minuto_saida  + ' cancelado'
+            + '\n\nSTATUS: SCHEDULES CANCELADOS COM SUCESSO');
         }
+        
 
 }
 
