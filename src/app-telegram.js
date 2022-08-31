@@ -1,4 +1,3 @@
-const { start } = require('forever');
 const env = require('../.env');
 const agendamento = require('./funcoes/agendamento-bate-ponto');
 const start_schedule = require('./rotas/start-schedule');
