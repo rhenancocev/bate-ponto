@@ -3,9 +3,9 @@
 instalar:
 
 PUPPETEER_PRODUCT=firefox npm install puppeteer
-npm install dotenv
-npm install
+npm install env
 npm install forever
+npm install 
 
 
 criar arquivo .env 
