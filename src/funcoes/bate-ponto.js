@@ -53,10 +53,10 @@ function aponta (ctx,bot,cronJob) {(async () => {
       await page.waitForNavigation();
 
       //clica no terceiro botão processar
-      //await page.click('[id="NM_BOT_PRC"]');
+      await page.click('[id="NM_BOT_PRC"]');
       console.log("Marcando ponto...")
   
-      //await page.waitForNavigation();
+      await page.waitForNavigation();
   
       //bate um print
       await page.screenshot({ path: 'ponto.png' });
