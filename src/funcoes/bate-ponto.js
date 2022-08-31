@@ -69,7 +69,7 @@ function aponta (ctx,bot,cronJob) {(async () => {
   
       await browser.close();
       console.log("Fechando browser...")
-      bot.sendMessage(ctx, "Processamento finalizado!");
+      await bot.sendMessage(ctx, "Processamento finalizado!");
       console.log("=====================================================")
 
       if(cronJob){
