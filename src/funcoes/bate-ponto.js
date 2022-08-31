@@ -1,7 +1,7 @@
-require('dotenv').config();
+const env = require('../../.env');
 const puppeteer = require('puppeteer');
 
-function aponta (ctx,bot) {(async () => {
+function aponta (ctx,bot,cronJob) {(async () => {
 
     const browser = await puppeteer.launch({ args: ['--disable-setuid-sandbox',
     '--no-sandbox',
@@ -15,10 +15,10 @@ function aponta (ctx,bot) {(async () => {
 
     //configurando timeout ilimitado
     await page.setDefaultNavigationTimeout(0);
-    const HOST = process.env.HOST
-    const ID_EMPRESA = process.env.ID_EMPRESA
-    const MATRICULA = process.env.MATRICULA
-    const SENHA = process.env.SENHA
+    const HOST = env.HOST
+    const ID_EMPRESA = env.ID_EMPRESA
+    const MATRICULA = env.MATRICULA
+    const SENHA = env.SENHA
   
     
       //acessando a pagina de ponto
@@ -53,10 +53,10 @@ function aponta (ctx,bot) {(async () => {
       await page.waitForNavigation();
 
       //clica no terceiro botão processar
-      await page.click('[id="NM_BOT_PRC"]');
+      //await page.click('[id="NM_BOT_PRC"]');
       console.log("Marcando ponto...")
   
-      await page.waitForNavigation();
+      //await page.waitForNavigation();
   
       //bate um print
       await page.screenshot({ path: 'ponto.png' });
@@ -71,6 +71,10 @@ function aponta (ctx,bot) {(async () => {
       console.log("Fechando browser...")
       bot.sendMessage(ctx, "Processamento finalizado!");
       console.log("=====================================================")
+
+      if(cronJob){
+        process.exit(1)
+      }
   
     } catch (error){
       console.log("SITE FORA OU SEM VPN: " + error);

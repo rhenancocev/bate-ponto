@@ -1,9 +1,8 @@
-require('dotenv').config();
 const schedule = require('node-schedule');
 const bate_ponto = require('./bate-ponto')
 const random = require('./random')
 
-async function cronActive (ctx,bot,status){
+async function cronActive (ctx,bot,status,cronJOB,reinicia_processo,hora,minuto){
 
     const timeElapsed = Date.now();
     const today = new Date(timeElapsed);
@@ -32,7 +31,7 @@ async function cronActive (ctx,bot,status){
         schedule.gracefulShutdown();
     }
 
-    if (status){
+    if (status && cronJOB == false){
         console.log('===================== ' + today.toLocaleDateString() + ' =====================')
         console.log('Sua entrada vai ser 9:' + cron_entrada);
         console.log('Sua entrada do almoço vai ser 12:'+ cron_entrada_almoco);
@@ -46,6 +45,17 @@ async function cronActive (ctx,bot,status){
                         + '\nSua saida do almoço vai ser 13:'+ minuto_saida_almoco
                         + '\nSua saida vai ser '+ hora_saida + ':' + minuto_saida
                         + '\n\nSTATUS: AGUARDANDO SCHEDULE');
+    }
+
+    if(cronJOB){
+        bot.sendMessage(chatId, 'Agendamos schedule manual para bater o ponto. \n' 
+                        + '\nSeu ponto será batido as ' + hora + ':' + minuto)
+
+        const agendamento = schedule.scheduleJob('schedule_manual', minuto + ' ' + hora + ' * * 1-5', async () => {
+            console.log('Iniciando schedule manual para bater o ponto as ' + hora + ':' + minuto)
+            bot.sendMessage(chatId, 'Iniciando schedule manual para bater o ponto as ' + hora + ':' + minuto)
+            bate_ponto.aponta(chatId,bot,reinicia_processo);
+        }, null, true, 'America/Sao_Paulo')
     }
     
         const entrada = schedule.scheduleJob('entrada', cron_entrada + ' 9 * * 1-5', () => {
@@ -69,11 +79,10 @@ async function cronActive (ctx,bot,status){
         const saida = schedule.scheduleJob('saida', minuto_saida + ' ' + hora_saida + ' * * 1-5', async () => {
             console.log('Iniciando cronJOB para bater o ponto de saida as ' + hora_saida + ':' + minuto_saida)
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saida as ' + hora_saida + ':' + minuto_saida)
-            await bate_ponto.aponta(chatId,bot);
-            process.exit(1)
+            bate_ponto.aponta(chatId,bot,reinicia_processo);
         }, null, true, 'America/Sao_Paulo')
 
-        if(status == false){
+        if(status == false && cronJOB == false){
             entrada.cancel()
             almoco.cancel()
             volta_almoco.cancel()
@@ -87,8 +96,6 @@ async function cronActive (ctx,bot,status){
             + '\nSaida'+ hora_saida + ':' + minuto_saida  + ' cancelado'
             + '\n\nSTATUS: SCHEDULES CANCELADOS COM SUCESSO');
         }
-        
-
 }
 
 module.exports = {
