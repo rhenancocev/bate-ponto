@@ -47,7 +47,7 @@ async function cronActive (ctx,bot,status,cronJOB,reinicia_processo,hora,minuto)
                         + '\n\nSTATUS: AGUARDANDO SCHEDULE');
     }
 
-    if(cronJOB){
+    if(cronJOB && status == false){
         bot.sendMessage(chatId, 'Agendamos schedule manual para bater o ponto. \n' 
                         + '\nSeu ponto será batido as ' + hora + ':' + minuto)
 
@@ -89,12 +89,7 @@ async function cronActive (ctx,bot,status,cronJOB,reinicia_processo,hora,minuto)
             saida.cancel()
             console.log('cancelados')
             schedule.gracefulShutdown();
-            bot.sendMessage(chatId, 'Todos os schedules serão cancelados:  \n'
-            + '\nEntrada 9:' + cron_entrada + ' cancelado'
-            + '\nEntrada do almoço 12:'+ cron_entrada_almoco  + ' cancelado'
-            + '\nSaida do almoço 13:'+ minuto_saida_almoco  + ' cancelado'
-            + '\nSaida'+ hora_saida + ':' + minuto_saida  + ' cancelado'
-            + '\n\nSTATUS: SCHEDULES CANCELADOS COM SUCESSO');
+            bot.sendMessage(chatId, 'Todos os schedules foram cancelados com sucesso.');
         }
 }
 
