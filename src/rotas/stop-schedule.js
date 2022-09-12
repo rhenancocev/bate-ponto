@@ -7,13 +7,11 @@ bot.onText(/\/stop/, async (ctx,match) => {
     const chatId = ctx.chat.id;
     const nome = ctx.from.first_name;
     const ativar = false;
-    const cronJOB = false;
     const reinicia_processo = false
     if (chatId == chat_id){
         await bot.sendMessage(chatId, nome + ", foi solicitado o cancelamento dos schedules!");
-        agendamento.cronActive(chatId,bot,ativar,cronJOB,reinicia_processo);
+        agendamento.cronActive(chatId,bot,ativar,reinicia_processo);
     } else {
         bot.sendMessage(chatId, nome + ", você não está autorizado para utilizar o bot.");
     } 
-        
 });
