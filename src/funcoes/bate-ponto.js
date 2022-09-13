@@ -10,11 +10,12 @@ function aponta (ctx,bot,cronJob) {(async () => {
     ignoreHTTPSErrors: true, 
     headless: true});
     
-    try{
     const page = await browser.newPage();
 
+    try{
+
     //configurando timeout ilimitado
-    await page.setDefaultNavigationTimeout(0);
+    page.setDefaultNavigationTimeout(0);
     const HOST = env.HOST
     const ID_EMPRESA = env.ID_EMPRESA
     const MATRICULA = env.MATRICULA
@@ -70,15 +71,12 @@ function aponta (ctx,bot,cronJob) {(async () => {
       await browser.close();
       console.log("Fechando browser...")
       bot.sendMessage(ctx, "Processamento finalizado!");
-      console.log("=====================================================")
 
       if(cronJob){
         process.exit(1)
       }
   
     } catch (error){
-      console.log("SITE FORA OU SEM VPN: " + error);
-      //await page.screenshot({ path: 'erro.png' });
       bot.sendMessage(ctx, "Erro ao bater o ponto, log:\n\n" + error);
       await browser.close();
     }
