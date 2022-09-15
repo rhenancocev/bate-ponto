@@ -1,5 +1,6 @@
 const env = require('../../.env');
 const puppeteer = require('puppeteer');
+const espera = require('./sleep')
 
 function aponta (ctx,bot,cronJob) {(async () => {
 
@@ -73,6 +74,8 @@ function aponta (ctx,bot,cronJob) {(async () => {
       bot.sendMessage(ctx, "Processamento finalizado!");
 
       if(cronJob){
+        bot.sendMessage(ctx, "Vamos reiniciar em 40 minutos.");
+        await espera.sleep(2400000)
         process.exit(1)
       }
   

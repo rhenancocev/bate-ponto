@@ -16,6 +16,7 @@ var ativar = true;
 var reinicia_processo = true;
 
 //precisei inicializar aqui, por conta do exit process.
+bot.sendMessage(chat_id, "Bot iniciado automaticamente.");
 agendamento.cronActive(chat_id,bot,ativar,reinicia_processo);
 
 bot.on('text', (ctx) => {
