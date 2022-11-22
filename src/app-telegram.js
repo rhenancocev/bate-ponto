@@ -8,16 +8,16 @@ const ping = require('./rotas/health-check');
 const ultimo_ponto = require('./rotas/ultimo-ponto');
 var chat_id = env.CHAT_ID;
 var bot = require ('./tokenAcesso/serverTelegramBot');
+var reboot_application = require('./rotas/reboot-application')
 
 process.env["NTBA_FIX_350"] = 1;
 process.env.NTBA_FIX_319 = 1;
 
-var ativar = true;
 var reinicia_processo = true;
 
 //precisei inicializar aqui, por conta do exit process.
 bot.sendMessage(chat_id, "Bot iniciado automaticamente.");
-agendamento.cronActive(chat_id,bot,ativar,reinicia_processo);
+agendamento.cronActive(chat_id,bot,reinicia_processo);
 
 bot.on('text', (ctx) => {
 
@@ -37,6 +37,8 @@ bot.on('text', (ctx) => {
             break;
         case '/ponto': ultimo_ponto;
             break;    
+        case '/reboot': reboot_application;
+            break;  
     }
 
 });

@@ -2,9 +2,8 @@ const schedule = require('node-schedule');
 const bate_ponto = require('./bate-ponto')
 const random = require('./random')
 
-function cronActive (ctx,bot,ativar,reinicia_processo){
+function cronActive (ctx,bot,reinicia_processo){
 
-    const scheduleList = schedule.scheduledJobs;
     const timeElapsed = Date.now();
     const today = new Date(timeElapsed);
     const chatId = ctx;
@@ -26,18 +25,12 @@ function cronActive (ctx,bot,ativar,reinicia_processo){
         minuto_saida = (cron_entrada + cron_saida) % 60
     }
 
-    if (scheduleList['entrada', 'almoco', 'volta_almoco', 'saida'] != undefined) {
-        schedule.gracefulShutdown();
-    }
-
-    if (ativar){
         bot.sendMessage(chatId, 'DATA: ' + today.toLocaleDateString() + ' \n'
                         + '\nSua entrada vai ser 9:' + cron_entrada
                         + '\nSua entrada do almoço vai ser 12:'+ cron_entrada_almoco
                         + '\nSua saida do almoço vai ser 13:'+ minuto_saida_almoco
                         + '\nSua saida vai ser '+ hora_saida + ':' + minuto_saida
                         + '\n\nSTATUS: AGUARDANDO SCHEDULE');
-    }
     
         const entrada = schedule.scheduleJob('entrada', cron_entrada + ' 9 * * 1-5', () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada as 09:' + cron_entrada)
@@ -58,16 +51,6 @@ function cronActive (ctx,bot,ativar,reinicia_processo){
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saida as ' + hora_saida + ':' + minuto_saida)
             bate_ponto.aponta(chatId,bot,reinicia_processo);
         }, null, true, 'America/Sao_Paulo')
-
-        if(!ativar){
-            entrada.cancel()
-            almoco.cancel()
-            volta_almoco.cancel()
-            saida.cancel()
-            console.log('cancelados')
-            schedule.gracefulShutdown();
-            bot.sendMessage(chatId, 'Todos os schedules foram cancelados com sucesso.');
-        }
 }
 
 module.exports = {
