@@ -7,7 +7,7 @@ bot.onText(/\/schedule/, (ctx,match) => {
     const chatId = ctx.chat.id;
     const nome = ctx.from.first_name;
     const hora_minuto = ctx.text.split(" ");
-    var reinicia_processo = true
+    var reinicia_processo = false
     var hora = hora_minuto[1]
     var minuto = hora_minuto[2]
 

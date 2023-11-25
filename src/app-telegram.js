@@ -1,6 +1,8 @@
 const env = require('../.env');
 const agendamento = require('./funcoes/agendamento-bate-ponto');
 const start_schedule = require('./rotas/start-schedule');
+const start_schedule_stress_test = require('./rotas/start-schedule-stress-test');
+const start_schedule_personalizado = require('./rotas/start-schedule-personalizado');
 const stop_schedule = require('./rotas/stop-schedule');
 const create_schedule = require('./rotas/create-schedule');
 const aponta = require('./rotas/apontamento-manual');
@@ -27,6 +29,10 @@ bot.on('text', (ctx) => {
     switch (comando) {
         case '/start': start_schedule;
             break;
+        case '/stress_test_schedule': start_schedule_stress_test;
+            break;
+        case '/personalizado_schedule': start_schedule_personalizado;
+            break;
         case '/stop': stop_schedule;
             break;
         case '/schedule': create_schedule;
@@ -38,7 +44,7 @@ bot.on('text', (ctx) => {
         case '/ponto': ultimo_ponto;
             break;    
         case '/reboot': reboot_application;
-            break;  
+            break;
     }
 
 });
