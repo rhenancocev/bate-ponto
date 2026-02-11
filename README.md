@@ -16,3 +16,6 @@ forever start --minUptime 1000 --spinSleepTime 1000 src/app-telegram.js
 
 listar: forever list
 parar: forever stopall
+
+
+https://prweb01/bahia/gateway?hptAppId=W1A1&hptExec=Y

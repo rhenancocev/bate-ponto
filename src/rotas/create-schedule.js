@@ -1,9 +1,8 @@
 const agendamento_manual = require('../funcoes/agendamento-manual-bate-ponto')
-var bot = require('../tokenAcesso/serverTelegramBot');
 const env = require('../../.env');
 var chat_id = env.CHAT_ID
 
-bot.onText(/\/schedule/, (ctx,match) => {
+module.exports = async (ctx, bot) => {
     const chatId = ctx.chat.id;
     const nome = ctx.from.first_name;
     const hora_minuto = ctx.text.split(" ");
@@ -21,4 +20,4 @@ bot.onText(/\/schedule/, (ctx,match) => {
             bot.sendMessage(chatId, nome + ", você não está autorizado para utilizar o bot.");
         }
     }
-});
+};
