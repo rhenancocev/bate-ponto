@@ -41,7 +41,7 @@ function cronActivePersonalizado (ctx,bot,reinicia_processo){
     
         const saida = schedule.scheduleJob('saida', minuto_saida + ' ' + hora_saida + ' * * 1-5', async () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saida as ' + hora_saida + ':' + minuto_saida)
-            bate_ponto.aponta(chatId,bot);
+            bate_ponto.aponta(chatId,bot,reinicia_processo);
         }, null, true, 'America/Sao_Paulo')
 }
 

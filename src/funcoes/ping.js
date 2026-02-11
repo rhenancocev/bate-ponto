@@ -7,6 +7,7 @@ function ping (ctx,bot) {(async () => {
     '--no-sandbox',
     '--ignore-certificate-errors'],
     product: 'firefox', 
+    executablePath: 'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
     ignoreHTTPSErrors: true, 
     headless: true});
 

@@ -1,17 +1,16 @@
 const schedule = require('node-schedule');
-var bot = require('../tokenAcesso/serverTelegramBot');
 const env = require('../../.env');
-var chat_id = env.CHAT_ID
+const chat_id = env.CHAT_ID;
 
-bot.onText(/\/stop/, async (ctx,match) => {
-    const chatId = ctx.chat.id;
-    const nome = ctx.from.first_name;
-    
-    if (chatId == chat_id){
-        await bot.sendMessage(chatId, nome + ", foi solicitado o cancelamento dos schedules!");
-        await schedule.gracefulShutdown();
-        bot.sendMessage(chatId, 'Todos os schedules foram cancelados com sucesso.');
-    } else {
-        bot.sendMessage(chatId, nome + ", você não está autorizado para utilizar o bot.");
-    } 
-});
+module.exports = async (ctx, bot) => {
+  const chatId = ctx.chat.id;
+  const nome = ctx.from.first_name;
+
+  if (chatId == chat_id) {
+    await bot.sendMessage(chatId, `${nome}, foi solicitado o cancelamento dos schedules!`);
+    await schedule.gracefulShutdown();
+    bot.sendMessage(chatId, 'Todos os schedules foram cancelados com sucesso.');
+  } else {
+    bot.sendMessage(chatId, `${nome}, você não está autorizado para utilizar o bot.`);
+  }
+};
