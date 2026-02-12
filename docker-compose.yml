@@ -9,4 +9,7 @@ services:
       - "prweb01:10.228.0.70"
     env_file:
     - .env
+    environment:
+    - TZ=America/Sao_Paulo
+
 
