@@ -28,25 +28,25 @@ function cronActiveInter (ctx,bot,reinicia_processo){
                         + '\nSua saida vai ser 00: '+ minuto_saida_inter
                         + '\n\nSTATUS: AGUARDANDO SCHEDULE');
     
-        const entrada = schedule.scheduleJob('entrada', cron_entrada + ' 23 * * 1-5', () => {
+        schedule.scheduleJob('entrada_23', {minute: cron_entrada, hour: 23, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada as 23:' + cron_entrada)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
     
-        const saida = schedule.scheduleJob('saida', minuto_saida + ' ' + hora_saida + ' * * 1-5', async () => {
+        schedule.scheduleJob('saida_geral', {minute: minuto_saida, hour: hora_saida, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, async () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saida as ' + hora_saida + ':' + minuto_saida)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
 
-        const entrada_inter = schedule.scheduleJob('entrada', cron_inter + ' 0 * * 1-5', () => {
+        schedule.scheduleJob('entrada_inter', {minute: cron_inter, hour: 0, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada as 00:' + cron_inter)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
     
-        const saida_inter = schedule.scheduleJob('saida', minuto_saida_inter + ' 0 * * 1-5', async () => {
+        schedule.scheduleJob('saida_inter', {minute: minuto_saida_inter, hour: 0, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, async () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saida as 00:' + minuto_saida_inter)
             bate_ponto.aponta(chatId,bot,reinicia_processo);
-        }, null, true, 'America/Sao_Paulo')
+        });
 }
 
 module.exports = {

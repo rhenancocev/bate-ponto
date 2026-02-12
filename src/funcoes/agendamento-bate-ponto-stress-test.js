@@ -26,35 +26,35 @@ function cronActiveStressTest (ctx,bot,reinicia_processo){
                         + '\nSua saida vai ser '+ hora_saida + ':' + minuto_saida
                         + '\n\nSTATUS: AGUARDANDO SCHEDULE');
 
-        const entrada_preparativos = schedule.scheduleJob('entrada_preparativos', minuto_inicio_preparativos + ' 23 * * 1-5', () => {
-            bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada as 23:' + minuto_inicio_preparativos)
-            bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        schedule.scheduleJob('entrada_preparativos', {minute: minuto_inicio_preparativos, hour: 23, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
+            bot.sendMessage(chatId,'Iniciando cronJOB para bater o ponto de entrada às 23:' + minuto_inicio_preparativos);
+            bate_ponto.aponta(chatId, bot);
+        });
 
-        const fim_preparativos = schedule.scheduleJob('fim_preparativos', minuto_fim_preparativos + ' 23 * * 1-5', () => {
+        schedule.scheduleJob('fim_preparativos', {minute: minuto_fim_preparativos, hour: 23, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada as 23:' + minuto_fim_preparativos)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
     
-        const entrada = schedule.scheduleJob('entrada', cron_entrada + ' 0 * * 1-5', () => {
+        schedule.scheduleJob('entrada', {minute: cron_entrada, hour: 0, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada as 00:' + cron_entrada)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
     
-        const almoco = schedule.scheduleJob('almoco', cron_entrada_almoco + ' 5 * * 1-5', () => {
+        schedule.scheduleJob('almoco', {minute: cron_entrada_almoco, hour: 5, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada do almoço as 5:' + cron_entrada_almoco)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
     
-        const volta_almoco = schedule.scheduleJob('volta_almoco', minuto_saida_almoco + ' 6 * * 1-5', () => {
+        schedule.scheduleJob('volta_almoco', {minute: minuto_saida_almoco, hour: 6, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saida do almoço as 16:' + minuto_saida_almoco)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
 
-        const saida = schedule.scheduleJob('saida', minuto_saida + ' 6 * * 1-5', () => {
+        schedule.scheduleJob('saida', {minute: minuto_saida, hour: 6, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
             bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saida as 6:' + minuto_saida)
             bate_ponto.aponta(chatId,bot);
-        }, null, true, 'America/Sao_Paulo')
+        });
     
 }
 

@@ -7,10 +7,16 @@ module.exports = async (ctx, bot) => {
   const nome = ctx.from.first_name;
 
   if (chatId == chat_id) {
-    await bot.sendMessage(chatId, `${nome}, foi solicitado o cancelamento dos schedules!`);
-    await schedule.gracefulShutdown();
-    bot.sendMessage(chatId, 'Todos os schedules foram cancelados com sucesso.');
+    await bot.sendMessage(chatId,`${nome}, foi solicitado o cancelamento de TODOS os schedules.`);
+    const jobs = schedule.scheduledJobs;
+    const total = Object.keys(jobs).length;
+
+    Object.keys(jobs).forEach(jobName => {
+      schedule.cancelJob(jobName);
+    });
+
+    await bot.sendMessage(chatId,`${total} schedule(s) cancelado(s) com sucesso.`);
   } else {
-    bot.sendMessage(chatId, `${nome}, você não está autorizado para utilizar o bot.`);
+    bot.sendMessage(chatId,`${nome}, você não está autorizado para utilizar o bot.`);
   }
 };

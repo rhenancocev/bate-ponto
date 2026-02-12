@@ -32,22 +32,22 @@ function cronActive(ctx, bot, reinicia_processo, horasaida) {
     + '\n\nSTATUS: AGUARDANDO SCHEDULE');
 
   try {
-    schedule.scheduleJob('entrada', `${cron_entrada} 9 * * 1-5`, () => {
+    schedule.scheduleJob('entrada', {minute: cron_entrada, hour: 9, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
       bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada às 09:' + cron_entrada);
       bate_ponto.aponta(chatId, bot);
     });
 
-    schedule.scheduleJob('almoco', `${cron_entrada_almoco} 12 * * 1-5`, () => {
+    schedule.scheduleJob('almoco', {minute: cron_entrada_almoco, hour: 12, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
       bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada do almoço às 12:' + cron_entrada_almoco);
       bate_ponto.aponta(chatId, bot);
     });
 
-    schedule.scheduleJob('volta_almoco', `${minuto_saida_almoco} 13 * * 1-5`, () => {
+    schedule.scheduleJob('volta_almoco', {minute: minuto_saida_almoco, hour: 13, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
       bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saída do almoço às 13:' + minuto_saida_almoco);
       bate_ponto.aponta(chatId, bot);
     });
 
-    schedule.scheduleJob('saida', `${minuto_saida} ${hora_saida} * * 1-5`, async () => {
+    schedule.scheduleJob('saida', {minute: minuto_saida, hour: hora_saida, dayOfWeek: new schedule.Range(1, 5),tz: 'America/Sao_Paulo'}, async () => {
       bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saída às ' + hora_saida + ':' + minuto_saida);
       bate_ponto.aponta(chatId, bot, reinicia_processo);
     });

@@ -19,3 +19,18 @@ parar: forever stopall
 
 
 https://prweb01/bahia/gateway?hptAppId=W1A1&hptExec=Y
+
+
+kubectl create secret generic bp-secrets \                                             󱃾 akspriv-awx-prd-admin/awx-prd 15:48:50
+  --from-literal=HOST=https://10.228.0.70/bahia/gateway \
+  --from-literal=ID_EMPRESA=49 \
+  --from-literal=MATRICULA=60012569 \
+  --from-literal=SENHA=Olivia32 \
+  --from-literal=CHAT_ID=621550962 \
+  --from-literal=TOKEN=5729154399:AAH5wBO81je4rsPFjcJv_D98kU7m_Wb8HM4
+
+kubectl create secret docker-registry secret-automation \                        ✘ INT 󱃾 akspriv-awx-prd-admin/awx-prd 15:56:02
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username=rhenancocev \
+  --docker-password=dckr_pat_MjXmoUsdH9DlkmwIyAF8zOi8otQ \
+  --docker-email=rhenan_cocev01@hotmail.com

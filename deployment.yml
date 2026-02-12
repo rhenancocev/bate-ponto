@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bpgcb
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: bpgcb
+
+  template:
+    metadata:
+      labels:
+        app: bpgcb
+
+    spec:
+      restartPolicy: Always
+
+      imagePullSecrets:
+        - name: secret-automation
+
+      containers:
+        - name: bpgcb
+          image: rhenancocev/bpgcb:1.0.0
+          imagePullPolicy: Always
+
+          envFrom:
+            - secretRef:
+                name: bp-secrets
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"

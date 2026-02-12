@@ -6,10 +6,10 @@ function agendamentoCron (chatId,bot,reinicia_processo,hora,minuto){
     bot.sendMessage(chatId, 'Agendamos schedule manual para bater o ponto. \n' 
                     + '\nSeu ponto será batido as ' + hora + ':' + minuto)
 
-    const agendamento = schedule.scheduleJob('schedule_manual', minuto + ' ' + hora + ' * * 0-6', () => {
-        bot.sendMessage(chatId, 'Iniciando schedule manual para bater o ponto as ' + hora + ':' + minuto)
-        bate_ponto.aponta(chatId,bot,reinicia_processo);
-    }, null, true, 'America/Sao_Paulo')
+    schedule.scheduleJob('schedule_manual', {minute: minuto, hour: hora, dayOfWeek: new schedule.Range(0, 6),tz: 'America/Sao_Paulo'}, () => {
+        bot.sendMessage(chatId,'Iniciando schedule manual para bater o ponto às ' + hora + ':' + minuto);
+        bate_ponto.aponta(chatId, bot, reinicia_processo);
+    });
 
 }
 
