@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  bate-ponto:
+    image: bate-ponto:latest
+    container_name: bate-ponto-bot
+    restart: unless-stopped
+    extra_hosts:
+      - "prweb01:10.228.0.70"
+    env_file:
+    - .env
+

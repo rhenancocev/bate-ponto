@@ -1,5 +1,5 @@
 const schedule = require('node-schedule');
-const env = require('../../.env');
+const env = require('../../config');
 const chat_id = env.CHAT_ID;
 
 module.exports = async (ctx, bot) => {

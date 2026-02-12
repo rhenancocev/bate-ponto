@@ -11,11 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^17.2.4",
     "env": "^0.0.2",
     "forever": "^4.0.3",
     "node-schedule": "^2.1.0",
-    "node-telegram-bot-api": "^0.59.0",
-    "puppeteer": "^16.2.0",
-    "puppeteer-core": "^23.0.2"
+    "node-telegram-bot-api": "^0.67.0",
+    "puppeteer": "^24.37.2"
   }
 }

@@ -1,4 +1,4 @@
-const env = require('../../.env');
+const env = require('../../config');
 var chat_id = env.CHAT_ID
 
 module.exports = async (ctx, bot) => {

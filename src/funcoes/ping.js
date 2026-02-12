@@ -1,13 +1,18 @@
-const env = require('../../.env');
+const env = require('../../config');
 const puppeteer = require('puppeteer');
 
 function ping (ctx,bot) {(async () => {
 
     const browser = await puppeteer.launch({ args: ['--disable-setuid-sandbox',
     '--no-sandbox',
-    '--ignore-certificate-errors'],
-    product: 'firefox', 
-    executablePath: 'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
+    '--ignore-certificate-errors',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--no-zygote',
+    '--single-process'],
+    //product: 'firefox', 
+    //executablePath: 'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
+    executablePath: '/usr/bin/chromium',
     ignoreHTTPSErrors: true, 
     headless: true});
 

@@ -1,5 +1,5 @@
 const bate_ponto = require('../funcoes/bate-ponto')
-const env = require('../../.env');
+const env = require('../../config');
 var chat_id = env.CHAT_ID
 
 module.exports = async (ctx, bot) =>  {

@@ -1,4 +1,4 @@
-const env = require('../.env');
+const env = require('../config');
 const agendamento = require('./funcoes/agendamento-bate-ponto');
 const start_schedule = require('./rotas/start-schedule');
 const start_schedule_1he = require('./rotas/start-schedule-1he');

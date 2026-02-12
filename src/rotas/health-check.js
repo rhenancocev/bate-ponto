@@ -1,4 +1,4 @@
-const env = require('../../.env');
+const env = require('../../config');
 const ping = require('../funcoes/ping')
 var chat_id = env.CHAT_ID
 
