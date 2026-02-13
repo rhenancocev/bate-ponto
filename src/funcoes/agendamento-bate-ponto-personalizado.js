@@ -1,50 +1,82 @@
 const schedule = require('node-schedule');
-const bate_ponto = require('./bate-ponto')
-const random = require('./random')
+const bate_ponto = require('./bate-ponto');
+const random = require('./random');
 
-function cronActivePersonalizado (ctx,bot,reinicia_processo){
+function cancelarJobsExistentes() {
+  Object.values(schedule.scheduledJobs).forEach(job => job.cancel());
+}
 
-  const timeElapsed = Date.now();
-  const today = new Date(timeElapsed);
+async function cronActivePersonalizado(ctx, bot, reinicia_processo) {
+  cancelarJobsExistentes();
+
+  const today = new Date();
   const chatId = ctx;
-  const min_entrada = 1;
-  const max_entrada = 1;
-  const min_almoco = 17;
-  const max_almoco = 17;
-  var hora_saida = 17;
-  var cron_entrada = random.between(min_entrada,max_entrada);
-  var minuto_saida = 59
-  var cron_entrada_almoco = random.between(min_almoco,max_almoco);
-  var minuto_saida_almoco = (cron_entrada_almoco + 62) % 60;
 
-  bot.sendMessage(chatId, 'DATA: ' + today.toLocaleDateString() + ' \n'
-                  + '\nSua entrada vai ser 8:' + cron_entrada
-                  + '\nSua entrada do almoço vai ser 12:'+ cron_entrada_almoco
-                  + '\nSua saida do almoço vai ser 13:'+ minuto_saida_almoco
-                  + '\nSua saida vai ser '+ hora_saida + ':' + minuto_saida
-                  + '\n\nSTATUS: AGUARDANDO SCHEDULE');
+  const cron_entrada = random.between(1, 1);
+  const cron_entrada_almoco = random.between(17, 17);
+  const minuto_saida = 59;
+  const minuto_saida_almoco = (cron_entrada_almoco + 62) % 60;
+  const hora_saida = 17;
 
-  schedule.scheduleJob('entrada', {minute: cron_entrada, hour: 8, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
-    bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada às 09:' + cron_entrada);
-    bate_ponto.aponta(chatId, bot);
+  await bot.sendMessage(chatId,
+    `DATA: ${today.toLocaleDateString()}
+
+Sua entrada vai ser 8:${cron_entrada}
+Sua entrada do almoço vai ser 12:${cron_entrada_almoco}
+Sua saída do almoço vai ser 13:${minuto_saida_almoco}
+Sua saída vai ser ${hora_saida}:${minuto_saida}
+
+STATUS: AGUARDANDO SCHEDULE`
+  );
+
+  const regraBase = {
+    dayOfWeek: new schedule.Range(1, 5),
+    tz: 'America/Sao_Paulo'
+  };
+
+  schedule.scheduleJob('entrada_personal', {
+    ...regraBase, minute: cron_entrada, hour: 8
+  }, async () => {
+    try {
+      await bot.sendMessage(chatId, `Iniciando entrada 8:${cron_entrada}`);
+      await bate_ponto.aponta(chatId, bot);
+    } catch (err) {
+      console.error("Erro entrada_personal:", err);
+    }
   });
 
-  schedule.scheduleJob('almoco', {minute: cron_entrada_almoco, hour: 12, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
-    bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de entrada do almoço às 12:' + cron_entrada_almoco);
-    bate_ponto.aponta(chatId, bot);
+  schedule.scheduleJob('almoco_personal', {
+    ...regraBase, minute: cron_entrada_almoco, hour: 12
+  }, async () => {
+    try {
+      await bot.sendMessage(chatId, `Iniciando almoço 12:${cron_entrada_almoco}`);
+      await bate_ponto.aponta(chatId, bot);
+    } catch (err) {
+      console.error("Erro almoco_personal:", err);
+    }
   });
 
-  schedule.scheduleJob('volta_almoco', {minute: minuto_saida_almoco, hour: 13, dayOfWeek: new schedule.Range(1, 5), tz: 'America/Sao_Paulo'}, () => {
-    bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saída do almoço às 13:' + minuto_saida_almoco);
-    bate_ponto.aponta(chatId, bot);
+  schedule.scheduleJob('volta_almoco_personal', {
+    ...regraBase, minute: minuto_saida_almoco, hour: 13
+  }, async () => {
+    try {
+      await bot.sendMessage(chatId, `Iniciando volta almoço 13:${minuto_saida_almoco}`);
+      await bate_ponto.aponta(chatId, bot);
+    } catch (err) {
+      console.error("Erro volta_almoco_personal:", err);
+    }
   });
 
-  schedule.scheduleJob('saida', {minute: minuto_saida, hour: hora_saida, dayOfWeek: new schedule.Range(1, 5),tz: 'America/Sao_Paulo'}, async () => {
-    bot.sendMessage(chatId, 'Iniciando cronJOB para bater o ponto de saída às ' + hora_saida + ':' + minuto_saida);
-    bate_ponto.aponta(chatId, bot, reinicia_processo);
+  schedule.scheduleJob('saida_personal', {
+    ...regraBase, minute: minuto_saida, hour: hora_saida
+  }, async () => {
+    try {
+      await bot.sendMessage(chatId, `Iniciando saída ${hora_saida}:${minuto_saida}`);
+      await bate_ponto.aponta(chatId, bot, reinicia_processo);
+    } catch (err) {
+      console.error("Erro saida_personal:", err);
+    }
   });
 }
 
-module.exports = {
-    cronActivePersonalizado: cronActivePersonalizado
-}
+module.exports = { cronActivePersonalizado };
