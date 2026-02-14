@@ -1,6 +1,9 @@
 module.exports = async (ctx, bot) => {
+  const bate_ponto = require('../funcoes/bate-ponto');
+  const env = require('../../config');
   const chatId = ctx.chat.id;
   const nome = ctx.from.first_name;
+  var chat_id = env.CHAT_ID;
 
   if (chatId == chat_id) {
     await bot.sendMessage(chatId, nome + ", aguarde enquanto bato seu ponto...");
