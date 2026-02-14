@@ -6,3 +6,4 @@ docker-compose.yml
 *.md
 start.sh
 .gitignore
+deployment.yml
