@@ -1,15 +1,27 @@
 const schedule = require('node-schedule');
 const bate_ponto = require('./bate-ponto');
 const random = require('./random');
+const executaSeDiaUtil = require('../helpers/executa-se-dia-util');
+const getExecutionDay = require('../helpers/dia-execucao');
+const formatarDataBR = require('../helpers/formatar-data');
+
+
 
 function cancelarJobsExistentes() {
   Object.values(schedule.scheduledJobs).forEach(job => job.cancel());
 }
 
 async function cronActive(ctx, bot, reinicia_processo, horasaida) {
-  cancelarJobsExistentes();
+  if (Object.keys(schedule.scheduledJobs).length > 0) {
+    cancelarJobsExistentes();
+  }
 
-  const today = new Date();
+  const today = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
+
+  const diaExecucao = getExecutionDay(today);
+
+
+
   const chatId = ctx;
 
   const min_entrada = 0;
@@ -32,70 +44,82 @@ async function cronActive(ctx, bot, reinicia_processo, horasaida) {
   }
 
   await bot.sendMessage(chatId,
-    `DATA: ${today.toLocaleDateString()}
+    `DATA DO PRÓXIMO PONTO: ${formatarDataBR(diaExecucao)}
 
-Sua entrada vai ser 9:${cron_entrada}
-Sua entrada do almoço vai ser 12:${cron_entrada_almoco}
-Sua saída do almoço vai ser 13:${minuto_saida_almoco}
-Sua saída vai ser ${hora_saida}:${minuto_saida}
+    Sua entrada vai ser 9:${cron_entrada}
+    Sua entrada do almoço vai ser 12:${cron_entrada_almoco}
+    Sua saída do almoço vai ser 13:${minuto_saida_almoco}
+    Sua saída vai ser ${hora_saida}:${minuto_saida}
 
-STATUS: AGUARDANDO SCHEDULE`
+    STATUS: AGUARDANDO SCHEDULE`
   );
 
   try {
     schedule.scheduleJob('entrada', {
+      date: diaExecucao.getDate(),
+      month: diaExecucao.getMonth(),
       minute: cron_entrada,
       hour: 9,
-      dayOfWeek: new schedule.Range(1, 5),
       tz: 'America/Sao_Paulo'
     }, async () => {
       try {
-        await bot.sendMessage(chatId, `Iniciando entrada 09:${cron_entrada}`);
-        await bate_ponto.aponta(chatId, bot);
+        await executaSeDiaUtil(bot, chatId, async () => {
+          await bot.sendMessage(chatId, `Iniciando entrada 09:${cron_entrada}`);
+          await bate_ponto.aponta(chatId, bot);
+        });
       } catch (err) {
-        console.error("Erro no job entrada:", err);
+        console.error("Erro no job 1:", err);
       }
     });
 
     schedule.scheduleJob('almoco', {
+      date: diaExecucao.getDate(),
+      month: diaExecucao.getMonth(),
       minute: cron_entrada_almoco,
       hour: 12,
-      dayOfWeek: new schedule.Range(1, 5),
       tz: 'America/Sao_Paulo'
     }, async () => {
       try {
-        await bot.sendMessage(chatId, `Iniciando almoço 12:${cron_entrada_almoco}`);
-        await bate_ponto.aponta(chatId, bot);
+        await executaSeDiaUtil(bot, chatId, async () => {
+          await bot.sendMessage(chatId, `Iniciando almoço 12:${cron_entrada_almoco}`);
+          await bate_ponto.aponta(chatId, bot);
+        });
       } catch (err) {
-        console.error("Erro no job almoço:", err);
+        console.error("Erro no job 2:", err);
       }
     });
 
     schedule.scheduleJob('volta_almoco', {
+      date: diaExecucao.getDate(),
+      month: diaExecucao.getMonth(),
       minute: minuto_saida_almoco,
       hour: 13,
-      dayOfWeek: new schedule.Range(1, 5),
       tz: 'America/Sao_Paulo'
     }, async () => {
       try {
-        await bot.sendMessage(chatId, `Iniciando volta almoço 13:${minuto_saida_almoco}`);
-        await bate_ponto.aponta(chatId, bot);
+        await executaSeDiaUtil(bot, chatId, async () => {
+          await bot.sendMessage(chatId, `Iniciando volta almoço 13:${minuto_saida_almoco}`);
+          await bate_ponto.aponta(chatId, bot);
+        });
       } catch (err) {
-        console.error("Erro no job volta almoço:", err);
+        console.error("Erro no job 3:", err);
       }
     });
 
     schedule.scheduleJob('saida', {
+      date: diaExecucao.getDate(),
+      month: diaExecucao.getMonth(),
       minute: minuto_saida,
       hour: hora_saida,
-      dayOfWeek: new schedule.Range(1, 5),
       tz: 'America/Sao_Paulo'
     }, async () => {
       try {
-        await bot.sendMessage(chatId, `Iniciando saída ${hora_saida}:${minuto_saida}`);
-        await bate_ponto.aponta(chatId, bot, reinicia_processo);
+        await executaSeDiaUtil(bot, chatId, async () => {
+          await bot.sendMessage(chatId, `Iniciando saída ${hora_saida}:${minuto_saida}`);
+          await bate_ponto.aponta(chatId, bot, reinicia_processo);
+        });
       } catch (err) {
-        console.error("Erro no job saída:", err);
+        console.error("Erro no job 4:", err);
       }
     });
 

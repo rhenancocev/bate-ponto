@@ -10,7 +10,7 @@ echo "Escalando deployment para 0..."
 kubectl scale deployment bpgcb --replicas=0
 
 echo "Aguardando 60 segundos..."
-sleep 60
+sleep 30
 
 echo "Aplicando novo deployment..."
 kubectl apply -f deployment.yml -n awx-prd

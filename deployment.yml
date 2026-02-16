@@ -4,6 +4,8 @@ metadata:
   name: bpgcb
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
 
   selector:
     matchLabels:
@@ -22,7 +24,7 @@ spec:
 
       containers:
         - name: bpgcb
-          image: rhenancocev/bpgcb:1.2.2
+          image: rhenancocev/bpgcb:1.4.1
           imagePullPolicy: Always
 
           envFrom:

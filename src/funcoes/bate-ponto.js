@@ -1,6 +1,6 @@
 const env = require('../../config');
 const puppeteer = require('puppeteer');
-const espera = require('./sleep');
+const { restartSchedules } = require('../helpers/schedule-manager');
 const fs = require('fs');
 
 async function aponta(ctx, bot, cronJob) {
@@ -65,9 +65,10 @@ async function aponta(ctx, bot, cronJob) {
     await bot.sendMessage(ctx, "Processamento finalizado!");
 
     if (cronJob) {
-      await bot.sendMessage(ctx, "Vamos reiniciar em 40 minutos.");
-      await espera.sleep(2400000);
-      process.exit(0);
+      await bot.sendMessage(ctx, "Novos horários serão gerados em 40 minutos.");
+      setTimeout(async () => {
+        await restartSchedules(ctx, bot, 18);
+      }, 2400000);
     }
 
   } catch (error) {
