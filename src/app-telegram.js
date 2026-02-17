@@ -12,6 +12,7 @@ const ping = require('./rotas/health-check');
 const ultimo_ponto = require('./rotas/ultimo-ponto');
 const reboot_application = require('./rotas/reboot-application');
 const trabalhar_feriado = require('./rotas/trabalhar');
+const folga = require('./rotas/folga');
 
 const chat_id = env.CHAT_ID;
 const bot = require('./tokenAcesso/serverTelegramBot');
@@ -75,6 +76,9 @@ bot.on('text', (ctx) => {
       break;
     case '/trabalhar':
       trabalhar_feriado(ctx, bot);
+      break;
+    case '/folga':
+      folga(ctx, bot);
       break;
   }
 });

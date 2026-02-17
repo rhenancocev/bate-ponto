@@ -4,13 +4,14 @@ module.exports = async (ctx, bot) => {
 
   const chatId = ctx.chat.id;
 
-  // remove múltiplos espaços
+  // remove espaços extras
   const args = ctx.text.trim().split(/\s+/);
 
   if (!args[1]) {
-    return bot.sendMessage(chatId, "Use: /trabalhar DD-MM-AAAA");
+    return bot.sendMessage(chatId, "Use: /folga DD-MM-AAAA");
   }
 
+  // aceita 10-10-2026 ou 10/10/2026
   const partes = args[1].replace(/\//g, '-').split('-');
   const [dia, mes, ano] = partes;
 
@@ -20,20 +21,20 @@ module.exports = async (ctx, bot) => {
 
   const dataISO = `${ano}-${mes.padStart(2,'0')}-${dia.padStart(2,'0')}`;
 
-  // valida se data existe de verdade
+  // valida data real
   const testeData = new Date(`${dataISO}T00:00:00-03:00`);
   if (isNaN(testeData.getTime())) {
     return bot.sendMessage(chatId, "Data inválida.");
   }
 
   // garante consistência:
-  // se marcar como trabalho, remove da folga
-  empresa.removerFolga(dataISO);
+  // se marcar folga, remove dos dias trabalhados
+  empresa.remover(dataISO);
 
-  empresa.adicionar(dataISO);
+  empresa.adicionarFolga(dataISO);
 
   await bot.sendMessage(
     chatId,
-    `Dia ${args[1]} marcado como DIA ÚTIL pela empresa.`
+    `Dia ${args[1]} marcado como FOLGA pessoal. Nenhum ponto será registrado.`
   );
 };

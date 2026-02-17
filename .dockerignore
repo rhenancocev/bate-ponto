@@ -7,3 +7,5 @@ docker-compose.yml
 start.sh
 .gitignore
 deployment.yml
+pvc.yml
+src/data

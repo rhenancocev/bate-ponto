@@ -17,11 +17,7 @@ async function cronActive(ctx, bot, reinicia_processo, horasaida) {
   }
 
   const today = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
-
   const diaExecucao = getExecutionDay(today);
-
-
-
   const chatId = ctx;
 
   const min_entrada = 0;
@@ -55,13 +51,11 @@ async function cronActive(ctx, bot, reinicia_processo, horasaida) {
   );
 
   try {
-    schedule.scheduleJob('entrada', {
-      date: diaExecucao.getDate(),
-      month: diaExecucao.getMonth(),
-      minute: cron_entrada,
-      hour: 9,
-      tz: 'America/Sao_Paulo'
-    }, async () => {
+    const dataEntrada = new Date(diaExecucao);
+    dataEntrada.setHours(9, cron_entrada, 0, 0);
+
+    schedule.scheduleJob('entrada', dataEntrada, async () => {
+      console.log('[SCHEDULE][entrada] próxima execução:',schedule.scheduledJobs['entrada'].nextInvocation());
       try {
         await executaSeDiaUtil(bot, chatId, async () => {
           await bot.sendMessage(chatId, `Iniciando entrada 09:${cron_entrada}`);
@@ -72,13 +66,11 @@ async function cronActive(ctx, bot, reinicia_processo, horasaida) {
       }
     });
 
-    schedule.scheduleJob('almoco', {
-      date: diaExecucao.getDate(),
-      month: diaExecucao.getMonth(),
-      minute: cron_entrada_almoco,
-      hour: 12,
-      tz: 'America/Sao_Paulo'
-    }, async () => {
+    const dataAlmoco = new Date(diaExecucao);
+    dataAlmoco.setHours(12, cron_entrada_almoco, 0, 0);
+
+    schedule.scheduleJob('almoco', dataAlmoco, async () => {
+      console.log('[SCHEDULE][almoco] próxima execução:',schedule.scheduledJobs['almoco'].nextInvocation());
       try {
         await executaSeDiaUtil(bot, chatId, async () => {
           await bot.sendMessage(chatId, `Iniciando almoço 12:${cron_entrada_almoco}`);
@@ -89,13 +81,11 @@ async function cronActive(ctx, bot, reinicia_processo, horasaida) {
       }
     });
 
-    schedule.scheduleJob('volta_almoco', {
-      date: diaExecucao.getDate(),
-      month: diaExecucao.getMonth(),
-      minute: minuto_saida_almoco,
-      hour: 13,
-      tz: 'America/Sao_Paulo'
-    }, async () => {
+    const dataVoltaAlmoco = new Date(diaExecucao);
+    dataVoltaAlmoco.setHours(13, minuto_saida_almoco, 0, 0);
+
+    schedule.scheduleJob('volta_almoco', dataVoltaAlmoco, async () => {
+      console.log('[SCHEDULE][volta_almoco] próxima execução:',schedule.scheduledJobs['volta_almoco'].nextInvocation());
       try {
         await executaSeDiaUtil(bot, chatId, async () => {
           await bot.sendMessage(chatId, `Iniciando volta almoço 13:${minuto_saida_almoco}`);
@@ -106,13 +96,11 @@ async function cronActive(ctx, bot, reinicia_processo, horasaida) {
       }
     });
 
-    schedule.scheduleJob('saida', {
-      date: diaExecucao.getDate(),
-      month: diaExecucao.getMonth(),
-      minute: minuto_saida,
-      hour: hora_saida,
-      tz: 'America/Sao_Paulo'
-    }, async () => {
+    const dataSaida = new Date(diaExecucao);
+    dataSaida.setHours(hora_saida, minuto_saida, 0, 0);
+
+    schedule.scheduleJob('saida', dataSaida, async () => {
+      console.log('[SCHEDULE][saida] próxima execução:',schedule.scheduledJobs['saida'].nextInvocation());
       try {
         await executaSeDiaUtil(bot, chatId, async () => {
           await bot.sendMessage(chatId, `Iniciando saída ${hora_saida}:${minuto_saida}`);
