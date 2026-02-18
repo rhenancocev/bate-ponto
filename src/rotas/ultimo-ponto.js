@@ -10,23 +10,10 @@ module.exports = async (ctx, bot) => {
   const nome = ctx.from.first_name;
 
   if (chatId == chat_id){
-
-    await bot.sendMessage(
-      chatId,
-      `${nome}, segue seu ultimo ponto batido:`
-    );
-
-    const filePath = path.join(process.cwd(), 'src', 'ponto.png');
-
-    await bot.sendPhoto(
-      chatId,
-      fs.createReadStream(filePath)
-    );
-
+    await bot.sendMessage(chatId,`${nome}, segue seu ultimo ponto batido:`);
+    const filePath = path.join(process.cwd(), 'ponto.png');
+    await bot.sendPhoto(chatId,fs.createReadStream(filePath));
   } else {
-    await bot.sendMessage(
-      chatId,
-      `${nome}, você não está autorizado para utilizar o bot.`
-    );
+    await bot.sendMessage(chatId,`${nome}, você não está autorizado para utilizar o bot.`);
   }
 };
