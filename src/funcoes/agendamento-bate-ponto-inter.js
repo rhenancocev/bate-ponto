@@ -1,81 +1,100 @@
-const schedule = require('node-schedule');
 const bate_ponto = require('./bate-ponto');
 const random = require('./random');
 
-function cancelarJobsExistentes() {
-  Object.values(schedule.scheduledJobs).forEach(job => job.cancel());
+const { setModo } = require('../helpers/scheduler-state');
+const scheduleEngine = require('../helpers/schedule-engine');
+const persistence = require('../helpers/scheduler-persistence');
+
+const { cronActive } = require('./agendamento-bate-ponto');
+
+function buildDate(baseDate, hour, minute) {
+  const d = new Date(baseDate);
+  d.setHours(hour, minute, 0, 0);
+  return d;
 }
 
-async function cronActiveInter(ctx, bot, reinicia_processo) {
-  cancelarJobsExistentes();
+async function cronActiveInter(ctx, bot) {
+
+  // engine controla cancelamento
+  scheduleEngine.cancelarJobsExistentes();
+
+  setModo('inter');
 
   const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
   const chatId = ctx;
 
+  // ---------------- RANDOM ----------------
+
   const cron_entrada = random.between(30, 35);
-  const cron_inter = random.between(1, 1);
+  const cron_inter = 1;
   const minuto_saida = random.between(58, 59);
   const minuto_saida_inter = random.between(7, 21);
-  const hora_saida = 23;
 
   await bot.sendMessage(chatId,
-    `DATA: ${today.toLocaleDateString()}
+`DATA: ${today.toLocaleDateString('pt-BR')}
 
 Sua entrada vai ser 23:${cron_entrada}
 Sua saída da inter vai ser 23:${minuto_saida}
 Sua entrada da inter vai ser 00:${cron_inter}
 Sua saída vai ser 00:${minuto_saida_inter}
 
-STATUS: AGUARDANDO SCHEDULE`
+STATUS: AGUARDANDO SCHEDULE (Modo Inter)`
   );
 
-  const regraBase = {
-    dayOfWeek: new schedule.Range(1, 5),
-    tz: 'America/Sao_Paulo'
-  };
+  // ---------------- DATAS ----------------
 
-  schedule.scheduleJob('entrada_23', {
-    ...regraBase, minute: cron_entrada, hour: 23
-  }, async () => {
-    try {
-      await bot.sendMessage(chatId, `Iniciando entrada 23:${cron_entrada}`);
-      await bate_ponto.aponta(chatId, bot);
-    } catch (err) {
-      console.error("Erro entrada_23:", err);
+  const entrada23 = buildDate(today, 23, cron_entrada);
+  const saida23 = buildDate(today, 23, minuto_saida);
+
+  const entradaInter = buildDate(tomorrow, 0, cron_inter);
+  const saidaInter = buildDate(tomorrow, 0, minuto_saida_inter);
+
+  // ---------------- PERSISTÊNCIA ----------------
+
+  persistence.salvar({
+    tipo: 'inter',
+    dia: today.toISOString(),
+    horarios: {
+      entrada_23: { hour: 23, minute: cron_entrada },
+      saida_geral: { hour: 23, minute: minuto_saida },
+      entrada_inter: { hour: 0, minute: cron_inter },
+      saida_inter: { hour: 0, minute: minuto_saida_inter }
     }
   });
 
-  schedule.scheduleJob('saida_geral', {
-    ...regraBase, minute: minuto_saida, hour: hora_saida
-  }, async () => {
-    try {
-      await bot.sendMessage(chatId, `Iniciando saída 23:${minuto_saida}`);
-      await bate_ponto.aponta(chatId, bot);
-    } catch (err) {
-      console.error("Erro saida_geral:", err);
-    }
+  console.log('[INTER] Estado salvo para restore');
+
+  // ---------------- JOBS ----------------
+
+  scheduleEngine.scheduleOnce('entrada_23', entrada23, async () => {
+    await bot.sendMessage(chatId, `Iniciando entrada 23:${cron_entrada}`);
+    await bate_ponto.aponta(chatId, bot);
   });
 
-  schedule.scheduleJob('entrada_inter', {
-    ...regraBase, minute: cron_inter, hour: 0
-  }, async () => {
-    try {
-      await bot.sendMessage(chatId, `Iniciando entrada inter 00:${cron_inter}`);
-      await bate_ponto.aponta(chatId, bot);
-    } catch (err) {
-      console.error("Erro entrada_inter:", err);
-    }
+  scheduleEngine.scheduleOnce('saida_geral', saida23, async () => {
+    await bot.sendMessage(chatId, `Iniciando saída 23:${minuto_saida}`);
+    await bate_ponto.aponta(chatId, bot);
   });
 
-  schedule.scheduleJob('saida_inter', {
-    ...regraBase, minute: minuto_saida_inter, hour: 0
-  }, async () => {
-    try {
-      await bot.sendMessage(chatId, `Iniciando saída inter 00:${minuto_saida_inter}`);
-      await bate_ponto.aponta(chatId, bot, reinicia_processo);
-    } catch (err) {
-      console.error("Erro saida_inter:", err);
-    }
+  scheduleEngine.scheduleOnce('entrada_inter', entradaInter, async () => {
+    await bot.sendMessage(chatId, `Iniciando entrada inter 00:${cron_inter}`);
+    await bate_ponto.aponta(chatId, bot);
+  });
+
+  // ---------- ÚLTIMO JOB ----------
+
+  scheduleEngine.scheduleOnce('saida_inter', saidaInter, async () => {
+    await bot.sendMessage(chatId,`Iniciando saída inter 00:${minuto_saida_inter}`);
+    await bate_ponto.aponta(chatId, bot);
+    await bot.sendMessage(chatId,'Turno madrugada finalizado. Retornando ao modo normal em 30 segundos...');
+    setModo('normal');
+    persistence.limpar();
+    setTimeout(() => {
+      cronActive(chatId, bot, 18, false);
+    }, 30000);
   });
 }
 

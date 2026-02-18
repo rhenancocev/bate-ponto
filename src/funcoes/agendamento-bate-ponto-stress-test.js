@@ -1,25 +1,42 @@
-const schedule = require('node-schedule');
 const bate_ponto = require('./bate-ponto');
+const scheduleEngine = require('../helpers/schedule-engine');
+const schedulerState = require('../helpers/scheduler-state');
+const persistence = require('../helpers/scheduler-persistence');
+const { cronActive } = require('./agendamento-bate-ponto'); // normal
 
-function cancelarJobsExistentes() {
-  Object.values(schedule.scheduledJobs).forEach(job => job.cancel());
+function buildDate(baseDate, hour, minute) {
+  const d = new Date(baseDate);
+  d.setHours(hour, minute, 0, 0);
+  return d;
 }
 
 async function cronActiveStressTest(ctx, bot) {
-  cancelarJobsExistentes();
+  // evita iniciar se já existir agenda
+  if (schedulerState.isAgendaAtiva()) {
+    console.log('[STRESS] Agenda já ativa.');
+    return;
+  }
+
+  scheduleEngine.cancelarJobsExistentes();
+
+  schedulerState.setModo('stress');
 
   const today = new Date();
   const chatId = ctx;
 
-  await bot.sendMessage(chatId,
-    `DATA: ${today.toLocaleDateString()}
-Stress Test Ativo`
-  );
+  await bot.sendMessage(
+    chatId,
+`DATA: ${today.toLocaleDateString('pt-BR')}
 
-  const regraBase = {
-    dayOfWeek: new schedule.Range(1, 5),
-    tz: 'America/Sao_Paulo'
-  };
+Os preparativos vai ser as 23:00
+O termino dos preparativos vai ser as 23:59
+Sua entrada vai ser 00:01
+Sua entrada do almoço vai ser 5:00
+Sua saída do almoço vai ser 6:01
+Sua saída vai ser 06:48
+
+STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
+  );
 
   const jobs = [
     { name: 'prep_inicio', hour: 23, minute: 0 },
@@ -30,17 +47,51 @@ Stress Test Ativo`
     { name: 'saida', hour: 6, minute: 48 }
   ];
 
+  // salva estado para recovery
+  persistence.salvar({
+    tipo: 'stress',
+    dia: today.toISOString(),
+    horarios: Object.fromEntries(
+      jobs.map(j => [
+        j.name,
+        { hour: j.hour, minute: j.minute }
+      ])
+    )
+  });
+
+  schedulerState.iniciarAgenda(today.toDateString());
+
   jobs.forEach(job => {
-    schedule.scheduleJob(job.name, {
-      ...regraBase,
-      hour: job.hour,
-      minute: job.minute
-    }, async () => {
-      try {
-        await bot.sendMessage(chatId, `Executando ${job.name}`);
-        await bate_ponto.aponta(chatId, bot);
-      } catch (err) {
-        console.error(`Erro ${job.name}:`, err);
+
+    const dataExecucao = buildDate(today, job.hour, job.minute);
+
+    console.log(`[STRESS][AGENDADO] ${job.name}`, dataExecucao.toString());
+
+    scheduleEngine.scheduleOnce(job.name, dataExecucao, async () => {
+
+      await bot.sendMessage(chatId, `Executando ${job.name}`);
+      await bate_ponto.aponta(chatId, bot);
+
+      // último job
+      if (job.name === 'saida') {
+
+        await bot.sendMessage(chatId,'Stress Test finalizado. Operação normal voltará em 13 horas.');
+
+        schedulerState.finalizarAgenda();
+        schedulerState.setModo('normal');
+
+        persistence.limpar();
+
+        const dataRetorno = new Date();
+        dataRetorno.setHours(dataRetorno.getHours() + 13);
+
+        console.log('[STRESS] retorno agendado para:', dataRetorno);
+
+        scheduleEngine.scheduleOnce(
+          'retorno_normal',
+          dataRetorno,
+          () => cronActive(chatId, bot, 18, true)
+        );
       }
     });
   });

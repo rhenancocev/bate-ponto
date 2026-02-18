@@ -3,35 +3,42 @@ const agendamento = require('./funcoes/agendamento-bate-ponto');
 const start_schedule = require('./rotas/start-schedule');
 const start_schedule_1he = require('./rotas/start-schedule-1he');
 const start_schedule_stress_test = require('./rotas/start-schedule-stress-test');
-const start_schedule_personalizado = require('./rotas/start-schedule-personalizado');
 const start_schedule_inter = require('./rotas/start-schedule-inter');
 const stop_schedule = require('./rotas/stop-schedule');
-const create_schedule = require('./rotas/create-schedule');
 const aponta = require('./rotas/apontamento-manual');
 const ping = require('./rotas/health-check');
 const ultimo_ponto = require('./rotas/ultimo-ponto');
 const reboot_application = require('./rotas/reboot-application');
 const trabalhar_feriado = require('./rotas/trabalhar');
 const folga = require('./rotas/folga');
-
+const { restaurar } = require('./helpers/scheduler-restore');
+const persistence = require('./helpers/scheduler-persistence');
 const chat_id = env.CHAT_ID;
 const bot = require('./tokenAcesso/serverTelegramBot');
 
 process.env["NTBA_FIX_350"] = 1;
 process.env.NTBA_FIX_319 = 1;
-
-const reinicia_processo = true;
 const horasaida = 18;
 
 let isInitialized = false;
 
-// Inicialização
-function initializeBot() {
-  if (!isInitialized) {
-    bot.sendMessage(chat_id, "Bot iniciado automaticamente.");
-    agendamento.cronActive(chat_id, bot, reinicia_processo, horasaida);
-    isInitialized = true;
+async function initializeBot() {
+
+  if (isInitialized) return;
+
+  await bot.sendMessage(chat_id, "Bot iniciado automaticamente.");
+  // espera conexão estabilizar
+  await new Promise(r => setTimeout(r, 5000));
+  if (persistence.existeEstado()) {
+    console.log('[BOOT] Estado encontrado. Restaurando scheduler...');
+    await bot.sendMessage(chat_id, "[BOOT] Estado encontrado. Restaurando scheduler...");
+    await restaurar(bot, chat_id);
+  } else {
+    console.log('[BOOT] Nenhum estado salvo. Criando novo schedule...');
+    await bot.sendMessage(chat_id, "[BOOT] Nenhum estado salvo. Criando novo schedule...");
+    agendamento.cronActive(chat_id, bot, horasaida);
   }
+  isInitialized = true;
 }
 
 initializeBot();
@@ -50,17 +57,11 @@ bot.on('text', (ctx) => {
     case '/stress_test_schedule':
       start_schedule_stress_test(ctx, bot);
       break;
-    case '/personalizado_schedule':
-      start_schedule_personalizado(ctx, bot);
-      break;
     case '/inter':
       start_schedule_inter(ctx, bot);
       break;
     case '/stop':
       stop_schedule(ctx, bot);
-      break;
-    case '/schedule':
-      create_schedule(ctx, bot);
       break;
     case '/aponta':
       aponta(ctx, bot);

@@ -24,7 +24,7 @@ spec:
 
       containers:
         - name: bpgcb
-          image: rhenancocev/bpgcb:1.5.2
+          image: rhenancocev/bpgcb:2.0.0
           imagePullPolicy: Always
 
           envFrom:

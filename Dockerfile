@@ -2,10 +2,14 @@ FROM node:20-slim
 
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 
+# Define timezone
+ENV TZ=America/Sao_Paulo
+
 WORKDIR /app
 
-# Instalar Chromium nativo arm64
+# Instalar dependências + timezone data
 RUN apt-get update && apt-get install -y \
+    tzdata \
     chromium \
     libnss3 \
     libatk1.0-0 \
@@ -22,6 +26,8 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     fonts-liberation \
     --no-install-recommends \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json ./

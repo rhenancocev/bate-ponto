@@ -1,23 +1,39 @@
-const schedule = require('node-schedule');
 const bate_ponto = require('./bate-ponto');
 const random = require('./random');
 const executaSeDiaUtil = require('../helpers/executa-se-dia-util');
 const getExecutionDay = require('../helpers/dia-execucao');
 const formatarDataBR = require('../helpers/formatar-data');
+const scheduleEngine = require('../helpers/schedule-engine');
+const schedulerState = require('../helpers/scheduler-state');
+const persistence = require('../helpers/scheduler-persistence');
 
 
 
-function cancelarJobsExistentes() {
-  Object.values(schedule.scheduledJobs).forEach(job => job.cancel());
+function buildDate(baseDate, hour, minute) {
+  const d = new Date(baseDate);
+  d.setHours(hour, minute, 0, 0);
+  return d;
 }
 
-async function cronActive(ctx, bot, reinicia_processo, horasaida) {
-  if (Object.keys(schedule.scheduledJobs).length > 0) {
-    cancelarJobsExistentes();
+async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
+
+  if (schedulerState.isAgendaAtiva()) {
+    console.log('[SCHEDULER] Agenda já ativa');
+    return;
   }
 
-  const today = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
-  const diaExecucao = getExecutionDay(today);
+  //engine controla cancelamento agora
+  scheduleEngine.cancelarJobsExistentes();
+
+  const today = new Date();
+  let diaExecucao = getExecutionDay(today);
+
+  if (forceNextDay) {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    diaExecucao = getExecutionDay(tomorrow);
+  }
+
   const chatId = ctx;
 
   const min_entrada = 0;
@@ -28,95 +44,99 @@ async function cronActive(ctx, bot, reinicia_processo, horasaida) {
   const max_almoco = 51;
 
   let hora_saida = horasaida;
-  let cron_entrada = random.between(min_entrada, max_entrada);
-  let cron_saida = random.between(min_saida, max_saida);
+
+  const cron_entrada = random.between(min_entrada, max_entrada);
+  const cron_saida = random.between(min_saida, max_saida);
   let minuto_saida = cron_entrada + cron_saida;
-  let cron_entrada_almoco = random.between(min_almoco, max_almoco);
-  let minuto_saida_almoco = (cron_entrada_almoco + 62) % 60;
+
+  const cron_entrada_almoco = random.between(min_almoco, max_almoco);
+  const minuto_saida_almoco = (cron_entrada_almoco + 62) % 60;
 
   if (minuto_saida >= 60) {
     hora_saida += 1;
-    minuto_saida = minuto_saida % 60;
+    minuto_saida %= 60;
   }
 
+persistence.salvar({
+  dia: diaExecucao.toISOString(),
+  horarios: {
+    entrada: { hour: 9, minute: cron_entrada },
+    almoco: { hour: 12, minute: cron_entrada_almoco },
+    volta: { hour: 13, minute: minuto_saida_almoco },
+    saida: { hour: hora_saida, minute: minuto_saida }
+  }
+});
+
+
   await bot.sendMessage(chatId,
-    `DATA DO PRÓXIMO PONTO: ${formatarDataBR(diaExecucao)}
+`DATA DO PRÓXIMO PONTO: ${formatarDataBR(diaExecucao)}
 
-    Sua entrada vai ser 9:${cron_entrada}
-    Sua entrada do almoço vai ser 12:${cron_entrada_almoco}
-    Sua saída do almoço vai ser 13:${minuto_saida_almoco}
-    Sua saída vai ser ${hora_saida}:${minuto_saida}
+Sua entrada vai ser 9:${cron_entrada}
+Sua entrada do almoço vai ser 12:${cron_entrada_almoco}
+Sua saída do almoço vai ser 13:${minuto_saida_almoco}
+Sua saída vai ser ${hora_saida}:${minuto_saida}
 
-    STATUS: AGUARDANDO SCHEDULE`
+STATUS: AGUARDANDO SCHEDULE`
   );
 
+  console.log("AGORA:", new Date().toString());
+
+  schedulerState.iniciarAgenda(diaExecucao.toDateString());
+
   try {
-    const dataEntrada = new Date(diaExecucao);
-    dataEntrada.setHours(9, cron_entrada, 0, 0);
 
-    schedule.scheduleJob('entrada', dataEntrada, async () => {
-      console.log('[SCHEDULE][entrada] próxima execução:',schedule.scheduledJobs['entrada'].nextInvocation());
-      try {
-        await executaSeDiaUtil(bot, chatId, async () => {
-          await bot.sendMessage(chatId, `Iniciando entrada 09:${cron_entrada}`);
-          await bate_ponto.aponta(chatId, bot);
-        });
-      } catch (err) {
-        console.error("Erro no job 1:", err);
-      }
+    // ---------- ENTRADA ----------
+    const dataEntrada = buildDate(diaExecucao, 9, cron_entrada);
+
+    scheduleEngine.scheduleOnce('entrada', dataEntrada, async () => {
+      await executaSeDiaUtil(bot, chatId, async () => {
+        await bot.sendMessage(chatId,
+          `Iniciando entrada 09:${cron_entrada}`);
+        await bate_ponto.aponta(chatId, bot);
+      });
     });
 
-    const dataAlmoco = new Date(diaExecucao);
-    dataAlmoco.setHours(12, cron_entrada_almoco, 0, 0);
+    // ---------- ALMOÇO ----------
+    const dataAlmoco = buildDate(diaExecucao, 12, cron_entrada_almoco);
 
-    schedule.scheduleJob('almoco', dataAlmoco, async () => {
-      console.log('[SCHEDULE][almoco] próxima execução:',schedule.scheduledJobs['almoco'].nextInvocation());
-      try {
-        await executaSeDiaUtil(bot, chatId, async () => {
-          await bot.sendMessage(chatId, `Iniciando almoço 12:${cron_entrada_almoco}`);
-          await bate_ponto.aponta(chatId, bot);
-        });
-      } catch (err) {
-        console.error("Erro no job 2:", err);
-      }
+    scheduleEngine.scheduleOnce('almoco', dataAlmoco, async () => {
+      await executaSeDiaUtil(bot, chatId, async () => {
+        await bot.sendMessage(chatId,
+          `Iniciando almoço 12:${cron_entrada_almoco}`);
+        await bate_ponto.aponta(chatId, bot);
+      });
     });
 
-    const dataVoltaAlmoco = new Date(diaExecucao);
-    dataVoltaAlmoco.setHours(13, minuto_saida_almoco, 0, 0);
+    // ---------- VOLTA ----------
+    const dataVolta = buildDate(diaExecucao, 13, minuto_saida_almoco);
 
-    schedule.scheduleJob('volta_almoco', dataVoltaAlmoco, async () => {
-      console.log('[SCHEDULE][volta_almoco] próxima execução:',schedule.scheduledJobs['volta_almoco'].nextInvocation());
-      try {
-        await executaSeDiaUtil(bot, chatId, async () => {
-          await bot.sendMessage(chatId, `Iniciando volta almoço 13:${minuto_saida_almoco}`);
-          await bate_ponto.aponta(chatId, bot);
-        });
-      } catch (err) {
-        console.error("Erro no job 3:", err);
-      }
+    scheduleEngine.scheduleOnce('volta_almoco', dataVolta, async () => {
+      await executaSeDiaUtil(bot, chatId, async () => {
+        await bot.sendMessage(chatId,
+          `Iniciando volta almoço 13:${minuto_saida_almoco}`);
+        await bate_ponto.aponta(chatId, bot);
+      });
     });
 
-    const dataSaida = new Date(diaExecucao);
-    dataSaida.setHours(hora_saida, minuto_saida, 0, 0);
+    // ---------- SAÍDA ----------
+    const dataSaida = buildDate(diaExecucao, hora_saida, minuto_saida);
 
-    schedule.scheduleJob('saida', dataSaida, async () => {
-      console.log('[SCHEDULE][saida] próxima execução:',schedule.scheduledJobs['saida'].nextInvocation());
-      try {
-        await executaSeDiaUtil(bot, chatId, async () => {
-          await bot.sendMessage(chatId, `Iniciando saída ${hora_saida}:${minuto_saida}`);
-          await bate_ponto.aponta(chatId, bot, reinicia_processo);
-        });
-      } catch (err) {
-        console.error("Erro no job 4:", err);
-      }
+    scheduleEngine.scheduleOnce('saida', dataSaida, async () => {
+      await executaSeDiaUtil(bot, chatId, async () => {
+        await bot.sendMessage(chatId,`Iniciando saída ${hora_saida}:${minuto_saida}`);
+        await bate_ponto.aponta(chatId, bot);
+        await bot.sendMessage(chatId,"Dia finalizado. Gerando horários do próximo dia útil...");
+        schedulerState.finalizarAgenda();
+        persistence.limpar();
+        setTimeout(() => {cronActive(chatId, bot, horasaida, true);}, 5000);
+      });
     });
 
   } catch (error) {
-    await bot.sendMessage(chatId, 'Erro ao agendar cron jobs: ' + error);
+    await bot.sendMessage(chatId,
+      'Erro ao agendar cron jobs: ' + error);
     console.error('Erro ao agendar cron jobs:', error);
   }
 }
 
-module.exports = {
-  cronActive
-};
+module.exports = { cronActive };

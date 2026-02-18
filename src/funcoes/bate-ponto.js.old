@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const { restartSchedules } = require('../helpers/schedule-manager');
 const fs = require('fs');
 
-async function aponta(ctx, bot) {
+async function aponta(ctx, bot, cronJob) {
 
   let browser;
 
@@ -63,6 +63,13 @@ async function aponta(ctx, bot) {
     await page.click('[id="NM_BOT_FIM"]');
 
     await bot.sendMessage(ctx, "Processamento finalizado!");
+
+    if (cronJob) {
+      await bot.sendMessage(ctx, "Novos horários serão gerados em 40 minutos.");
+      setTimeout(async () => {
+        await restartSchedules(ctx, bot, 18);
+      }, 2400000);
+    }
 
   } catch (error) {
     console.error("Erro ao bater ponto:", error);
