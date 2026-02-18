@@ -90,8 +90,7 @@ STATUS: AGUARDANDO SCHEDULE`
 
     scheduleEngine.scheduleOnce('entrada', dataEntrada, async () => {
       await executaSeDiaUtil(bot, chatId, async () => {
-        await bot.sendMessage(chatId,
-          `Iniciando entrada 09:${cron_entrada}`);
+        await bot.sendMessage(chatId,`Iniciando entrada 09:${cron_entrada}`);
         await bate_ponto.aponta(chatId, bot);
       });
     });
@@ -101,8 +100,7 @@ STATUS: AGUARDANDO SCHEDULE`
 
     scheduleEngine.scheduleOnce('almoco', dataAlmoco, async () => {
       await executaSeDiaUtil(bot, chatId, async () => {
-        await bot.sendMessage(chatId,
-          `Iniciando almoço 12:${cron_entrada_almoco}`);
+        await bot.sendMessage(chatId,`Iniciando almoço 12:${cron_entrada_almoco}`);
         await bate_ponto.aponta(chatId, bot);
       });
     });
@@ -112,8 +110,7 @@ STATUS: AGUARDANDO SCHEDULE`
 
     scheduleEngine.scheduleOnce('volta_almoco', dataVolta, async () => {
       await executaSeDiaUtil(bot, chatId, async () => {
-        await bot.sendMessage(chatId,
-          `Iniciando volta almoço 13:${minuto_saida_almoco}`);
+        await bot.sendMessage(chatId,`Iniciando volta almoço 13:${minuto_saida_almoco}`);
         await bate_ponto.aponta(chatId, bot);
       });
     });
