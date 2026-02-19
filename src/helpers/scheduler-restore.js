@@ -2,6 +2,7 @@ const persistence = require('./scheduler-persistence');
 const scheduleEngine = require('./schedule-engine');
 const executaSeDiaUtil = require('./executa-se-dia-util');
 const bate_ponto = require('../funcoes/bate-ponto');
+const { cronActive } = require('../funcoes/agendamento-bate-ponto');
 
 function buildDate(baseDate, hour, minute) {
   const d = new Date(baseDate);
@@ -59,16 +60,10 @@ async function restaurar(bot, chatId) {
 
     });
   }
-
-  // NOVO COMPORTAMENTO INTELIGENTE
+  
   // nenhum job futuro → dia já acabou
   if (!algumJobRestaurado) {
-
     console.log('[RESTORE] Dia já finalizado. Criando próximo dia útil...');
-
-    const { cronActive } = require('../funcoes/agendamento-bate-ponto');
-
-    // pequeno delay para evitar race condition no boot
     setTimeout(() => {
       cronActive(chatId, bot, 18, true);
     }, 5000);
