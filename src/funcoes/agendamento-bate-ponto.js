@@ -7,8 +7,6 @@ const scheduleEngine = require('../helpers/schedule-engine');
 const schedulerState = require('../helpers/scheduler-state');
 const persistence = require('../helpers/scheduler-persistence');
 
-
-
 function buildDate(baseDate, hour, minute) {
   const d = new Date(baseDate);
   d.setHours(hour, minute, 0, 0);
@@ -17,12 +15,13 @@ function buildDate(baseDate, hour, minute) {
 
 async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
 
+  // evita duplicação
   if (schedulerState.isAgendaAtiva()) {
     console.log('[SCHEDULER] Agenda já ativa');
     return;
   }
 
-  //engine controla cancelamento agora
+  // engine controla cancelamento
   scheduleEngine.cancelarJobsExistentes();
 
   const today = new Date();
@@ -35,6 +34,7 @@ async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
   }
 
   const chatId = ctx;
+  // ---------------- RANDOMIZAÇÃO ----------------
 
   const min_entrada = 0;
   const max_entrada = 35;
@@ -57,29 +57,53 @@ async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
     minuto_saida %= 60;
   }
 
-persistence.salvar({
-  dia: diaExecucao.toISOString(),
-  horarios: {
-    entrada: { hour: 9, minute: cron_entrada },
-    almoco: { hour: 12, minute: cron_entrada_almoco },
-    volta: { hour: 13, minute: minuto_saida_almoco },
-    saida: { hour: hora_saida, minute: minuto_saida }
-  }
-});
+  // ---------------- VALIDA SE DIA JÁ ACABOU ----------------
 
+  const now = new Date();
+
+  const dataSaidaTeste = buildDate(
+    diaExecucao,
+    hora_saida,
+    minuto_saida
+  );
+
+  // se último horário já passou → mover dia inteiro
+  if (dataSaidaTeste <= now) {
+    console.log('[SCHEDULER] Dia já finalizado, movendo para próximo dia útil');
+
+    const tomorrow = new Date(diaExecucao);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    diaExecucao = getExecutionDay(tomorrow);
+  }
+
+  // ---------------- PERSISTÊNCIA ----------------
+
+  persistence.salvar({
+    tipo: 'normal',
+    dia: diaExecucao.toISOString(),
+    horarios: {
+      entrada: { hour: 9, minute: cron_entrada },
+      almoco: { hour: 12, minute: cron_entrada_almoco },
+      volta: { hour: 13, minute: minuto_saida_almoco },
+      saida: { hour: hora_saida, minute: minuto_saida }
+    }
+  });
+
+  // ---------------- MENSAGEM ----------------
 
   await bot.sendMessage(chatId,
 `DATA DO PRÓXIMO PONTO: ${formatarDataBR(diaExecucao)}
 
-Sua entrada vai ser 9:${cron_entrada}
-Sua entrada do almoço vai ser 12:${cron_entrada_almoco}
-Sua saída do almoço vai ser 13:${minuto_saida_almoco}
-Sua saída vai ser ${hora_saida}:${minuto_saida}
+  Sua entrada vai ser 9:${cron_entrada}
+  Sua entrada do almoço vai ser 12:${cron_entrada_almoco}
+  Sua saída do almoço vai ser 13:${minuto_saida_almoco}
+  Sua saída vai ser ${hora_saida}:${minuto_saida}
 
 STATUS: AGUARDANDO SCHEDULE`
   );
 
-  console.log("AGORA:", new Date().toString());
+  console.log("AGORA:", now.toString());
 
   schedulerState.iniciarAgenda(diaExecucao.toDateString());
 

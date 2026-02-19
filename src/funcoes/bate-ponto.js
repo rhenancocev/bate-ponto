@@ -1,6 +1,5 @@
 const env = require('../../config');
 const puppeteer = require('puppeteer');
-const { restartSchedules } = require('../helpers/schedule-manager');
 const fs = require('fs');
 
 async function aponta(ctx, bot) {

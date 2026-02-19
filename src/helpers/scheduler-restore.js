@@ -18,10 +18,12 @@ async function restaurar(bot, chatId) {
     return;
   }
 
-  console.log('[RESTORE] Tipo:', state.tipo);
+  console.log('[RESTORE] Tipo:', state.tipo || 'normal');
 
   const diaExecucao = new Date(state.dia);
   const now = new Date();
+
+  let algumJobRestaurado = false;
 
   for (const [nome, horario] of Object.entries(state.horarios)) {
 
@@ -31,24 +33,46 @@ async function restaurar(bot, chatId) {
       horario.minute
     );
 
-    // tolerância 2 minutos
-    if (dataExecucao.getTime() < now.getTime() - 120000)
+    // tolerância de 2 minutos
+    if (dataExecucao.getTime() < now.getTime() - 120000) {
+      console.log(`[RESTORE] Ignorado (já passou): ${nome}`);
       continue;
-
+    }
+    algumJobRestaurado = true;
+    console.log('[RESTORE][AGENDADO]', nome, dataExecucao.toString());
     scheduleEngine.scheduleOnce(nome, dataExecucao, async () => {
-      // normal usa verificação de feriado
-      if (state.tipo === 'normal') {
-        await executaSeDiaUtil(bot, chatId, async () => {
-          await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${horario.minute}`);
+      try {
+        // modo normal respeita feriado
+        if (!state.tipo || state.tipo === 'normal') {
+          await executaSeDiaUtil(bot, chatId, async () => {
+            await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${String(horario.minute).padStart(2,'0')}`);
+            await bate_ponto.aponta(chatId, bot);
+          });
+        } else {
+          // stress / inter executam direto
+          await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${String(horario.minute).padStart(2,'0')}`
+          );
           await bate_ponto.aponta(chatId, bot);
-        });
-      } else {
-        // stress/inter executam direto
-        await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${horario.minute}`);
-        await bate_ponto.aponta(chatId, bot);
+        }
+      } catch (err) {
+        console.error(`[RESTORE][ERRO][${nome}]`, err);
       }
 
     });
+  }
+
+  // NOVO COMPORTAMENTO INTELIGENTE
+  // nenhum job futuro → dia já acabou
+  if (!algumJobRestaurado) {
+
+    console.log('[RESTORE] Dia já finalizado. Criando próximo dia útil...');
+
+    const { cronActive } = require('../funcoes/agendamento-bate-ponto');
+
+    // pequeno delay para evitar race condition no boot
+    setTimeout(() => {
+      cronActive(chatId, bot, 18, true);
+    }, 5000);
   }
 }
 
