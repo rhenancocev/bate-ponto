@@ -1,5 +1,5 @@
 const bate_ponto = require('./bate-ponto');
-const random = require('./random');
+const random = require('../helpers/random');
 
 const { setModo } = require('../helpers/scheduler-state');
 const scheduleEngine = require('../helpers/schedule-engine');

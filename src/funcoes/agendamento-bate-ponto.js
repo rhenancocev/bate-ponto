@@ -1,5 +1,5 @@
 const bate_ponto = require('./bate-ponto');
-const random = require('./random');
+const random = require('../helpers/random');
 const executaSeDiaUtil = require('../helpers/executa-se-dia-util');
 const getExecutionDay = require('../helpers/dia-execucao');
 const formatarDataBR = require('../helpers/formatar-data');

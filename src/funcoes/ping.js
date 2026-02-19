@@ -10,8 +10,6 @@ function ping (ctx,bot) {(async () => {
     '--disable-gpu',
     '--no-zygote',
     '--single-process'],
-    //product: 'firefox', 
-    //executablePath: 'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
     executablePath: '/usr/bin/chromium',
     ignoreHTTPSErrors: true, 
     headless: true});
