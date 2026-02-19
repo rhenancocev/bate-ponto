@@ -50,8 +50,7 @@ async function restaurar(bot, chatId) {
           });
         } else {
           // stress / inter executam direto
-          await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${String(horario.minute).padStart(2,'0')}`
-          );
+          await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${String(horario.minute).padStart(2,'0')}`);
           await bate_ponto.aponta(chatId, bot);
         }
       } catch (err) {
