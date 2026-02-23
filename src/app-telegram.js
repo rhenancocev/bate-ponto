@@ -14,72 +14,62 @@ const folga = require('./rotas/folga');
 const { restaurar } = require('./helpers/scheduler-restore');
 const persistence = require('./helpers/scheduler-persistence');
 const chat_id = env.CHAT_ID;
-const bot = require('./tokenAcesso/serverTelegramBot');
-
-process.env["NTBA_FIX_350"] = 1;
-process.env.NTBA_FIX_319 = 1;
 const horasaida = 18;
+const bot = require('./tokenAcesso/serverTelegramBot');
+process.env.NTBA_FIX_350 = 1;
+process.env.NTBA_FIX_319 = 1;
 
 let isInitialized = false;
 
 async function initializeBot() {
 
   if (isInitialized) return;
-
+  console.log('[BOOT] Inicializando bot...');
   await bot.sendMessage(chat_id, "Bot iniciado automaticamente.");
-  // espera conexão estabilizar
+  // aguarda estabilizar polling
   await new Promise(r => setTimeout(r, 5000));
   if (persistence.existeEstado()) {
     console.log('[BOOT] Estado encontrado. Restaurando scheduler...');
-    await bot.sendMessage(chat_id, "[BOOT] Estado encontrado. Restaurando scheduler...");
+    await bot.sendMessage(chat_id,"[BOOT] Estado encontrado. Restaurando scheduler...");
     await restaurar(bot, chat_id);
   } else {
     console.log('[BOOT] Nenhum estado salvo. Criando novo schedule...');
-    await bot.sendMessage(chat_id, "[BOOT] Nenhum estado salvo. Criando novo schedule...");
-    agendamento.cronActive(chat_id, bot, horasaida);
+    await bot.sendMessage(chat_id,"[BOOT] Nenhum estado salvo. Criando novo schedule...");
+    await agendamento.cronActive(chat_id, bot, horasaida);
   }
   isInitialized = true;
 }
 
-initializeBot();
+// evita crash silencioso
+initializeBot().catch(err => {
+  console.error('[BOOT ERROR]', err);
+});
+
+// graceful shutdown (Kubernetes)
+process.on('SIGTERM', async () => {
+  console.log('[BOT] stopping polling...');
+  await bot.stopPolling();
+  process.exit(0);
+});
+
+// captura Promises esquecidas
+process.on('unhandledRejection', err => {
+  console.error('[UNHANDLED]', err);
+});
 
 bot.on('text', (ctx) => {
-  const espaco = ctx.text.split(" ");
-  const comando = espaco[0];
-
+  const comando = ctx.text.split(" ")[0];
   switch (comando) {
-    case '/start':
-      start_schedule(ctx, bot);
-      break;
-    case '/1he_start':
-      start_schedule_1he(ctx, bot);
-      break;
-    case '/stress_test_schedule':
-      start_schedule_stress_test(ctx, bot);
-      break;
-    case '/inter':
-      start_schedule_inter(ctx, bot);
-      break;
-    case '/stop':
-      stop_schedule(ctx, bot);
-      break;
-    case '/aponta':
-      aponta(ctx, bot);
-      break;
-    case '/ping':
-      ping(ctx, bot);
-      break;
-    case '/ponto':
-      ultimo_ponto(ctx, bot);
-      break;
-    case '/reboot':
-      reboot_application(ctx, bot);
-      break;
-    case '/trabalhar':
-      trabalhar_feriado(ctx, bot);
-      break;
-    case '/folga':
-      folga(ctx, bot);
-      break;
+    case '/start': start_schedule(ctx, bot); break;
+    case '/1he_start': start_schedule_1he(ctx, bot); break;
+    case '/stress_test_schedule': start_schedule_stress_test(ctx, bot); break;
+    case '/inter': start_schedule_inter(ctx, bot); break;
+    case '/stop': stop_schedule(ctx, bot); break;
+    case '/aponta': aponta(ctx, bot); break;
+    case '/ping': ping(ctx, bot); break;
+    case '/ponto': ultimo_ponto(ctx, bot); break;
+    case '/reboot': reboot_application(ctx, bot); break;
+    case '/trabalhar': trabalhar_feriado(ctx, bot); break;
+    case '/folga': folga(ctx, bot); break;
   }
 });
