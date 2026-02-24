@@ -14,26 +14,20 @@ function buildDate(baseDate, hour, minute) {
 }
 
 async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
-
   // evita duplicação
   if (schedulerState.isAgendaAtiva()) {
     console.log('[SCHEDULER] Agenda já ativa');
     return;
   }
 
-  // engine controla cancelamento
+  // limpa jobs antigos
   scheduleEngine.cancelarJobsExistentes();
 
+  const chatId = ctx;
   const today = new Date();
+  // dia base
   let diaExecucao = getExecutionDay(today);
 
-  if (forceNextDay) {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    diaExecucao = getExecutionDay(tomorrow);
-  }
-
-  const chatId = ctx;
   // ---------------- RANDOMIZAÇÃO ----------------
 
   const min_entrada = 0;
@@ -57,7 +51,7 @@ async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
     minuto_saida %= 60;
   }
 
-  // ---------------- VALIDA SE DIA JÁ ACABOU ----------------
+  // ---------------- VALIDAÇÃO DO DIA ----------------
 
   const now = new Date();
 
@@ -67,15 +61,18 @@ async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
     minuto_saida
   );
 
-  // se último horário já passou → mover dia inteiro
-  if (dataSaidaTeste <= now) {
-    console.log('[SCHEDULER] Dia já finalizado, movendo para próximo dia útil');
-
+  /**
+   * REGRA ÚNICA:
+   * - forceNextDay → sempre próximo dia útil
+   * - dia já terminou → próximo dia útil
+   */
+  if (forceNextDay || dataSaidaTeste <= now) {
+    console.log('[SCHEDULER] Movendo execução para próximo dia útil');
     const tomorrow = new Date(diaExecucao);
     tomorrow.setDate(tomorrow.getDate() + 1);
-
     diaExecucao = getExecutionDay(tomorrow);
   }
+  console.log('[SCHEDULER] Dia execução:', diaExecucao.toString());
 
   // ---------------- PERSISTÊNCIA ----------------
 
@@ -90,7 +87,7 @@ async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
     }
   });
 
-  // ---------------- MENSAGEM ----------------
+  // ---------------- MENSAGEM TELEGRAM ----------------
 
   await bot.sendMessage(chatId,
 `DATA DO PRÓXIMO PONTO: ${formatarDataBR(diaExecucao)}
@@ -102,8 +99,6 @@ async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
 
 STATUS: AGUARDANDO SCHEDULE`
   );
-
-  console.log("AGORA:", now.toString());
 
   schedulerState.iniciarAgenda(diaExecucao.toDateString());
 
@@ -128,7 +123,6 @@ STATUS: AGUARDANDO SCHEDULE`
         await bate_ponto.aponta(chatId, bot);
       });
     });
-
     // ---------- VOLTA ----------
     const dataVolta = buildDate(diaExecucao, 13, minuto_saida_almoco);
 
@@ -149,6 +143,7 @@ STATUS: AGUARDANDO SCHEDULE`
         await bot.sendMessage(chatId,"Dia finalizado. Gerando horários do próximo dia útil...");
         schedulerState.finalizarAgenda();
         persistence.limpar();
+        // inicia próximo dia automaticamente
         setTimeout(() => {cronActive(chatId, bot, horasaida, true);}, 5000);
       });
     });

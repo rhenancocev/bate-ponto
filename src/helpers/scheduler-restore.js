@@ -3,6 +3,7 @@ const scheduleEngine = require('./schedule-engine');
 const executaSeDiaUtil = require('./executa-se-dia-util');
 const bate_ponto = require('../funcoes/bate-ponto');
 const { cronActive } = require('../funcoes/agendamento-bate-ponto');
+const schedulerState = require('./scheduler-state');
 
 function buildDate(baseDate, hour, minute) {
   const d = new Date(baseDate);
@@ -43,16 +44,23 @@ async function restaurar(bot, chatId) {
     console.log('[RESTORE][AGENDADO]', nome, dataExecucao.toString());
     scheduleEngine.scheduleOnce(nome, dataExecucao, async () => {
       try {
-        // modo normal respeita feriado
-        if (!state.tipo || state.tipo === 'normal') {
-          await executaSeDiaUtil(bot, chatId, async () => {
-            await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${String(horario.minute).padStart(2,'0')}`);
-            await bate_ponto.aponta(chatId, bot);
-          });
-        } else {
-          // stress / inter executam direto
+        const executar = async () => {
           await bot.sendMessage(chatId,`Restaurado → ${nome} ${horario.hour}:${String(horario.minute).padStart(2,'0')}`);
           await bate_ponto.aponta(chatId, bot);
+          if (nome === 'saida') {
+            await bot.sendMessage(chatId,'Dia finalizado (restore completo). Gerando horários do próximo dia útil...');
+            schedulerState.finalizarAgenda();
+            persistence.limpar();
+            setTimeout(() => {cronActive(chatId, bot, 18, true);}, 5000);
+          }
+        };
+
+        // modo normal respeita feriado
+        if (!state.tipo || state.tipo === 'normal') {
+          await executaSeDiaUtil(bot, chatId, executar);
+        } else {
+          // stress/inter executam direto
+          await executar();
         }
       } catch (err) {
         console.error(`[RESTORE][ERRO][${nome}]`, err);
@@ -60,7 +68,6 @@ async function restaurar(bot, chatId) {
 
     });
   }
-  
   // nenhum job futuro → dia já acabou
   if (!algumJobRestaurado) {
     console.log('[RESTORE] Dia já finalizado. Criando próximo dia útil...');
