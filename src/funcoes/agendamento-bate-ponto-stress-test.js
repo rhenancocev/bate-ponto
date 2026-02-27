@@ -12,10 +12,12 @@ function buildDate(baseDate, hour, minute) {
 
 async function cronActiveStressTest(ctx, bot) {
   // evita iniciar se já existir agenda
-  if (schedulerState.isAgendaAtiva()) {
-    console.log('[STRESS] Agenda já ativa.');
-    return;
-  }
+if (schedulerState.isAgendaAtiva()) {
+  console.log('[STRESS] Cancelando agenda atual para iniciar stress...');
+  scheduleEngine.cancelarJobsExistentes();
+  schedulerState.finalizarAgenda();
+  persistence.limpar();
+}
 
   scheduleEngine.cancelarJobsExistentes();
 
