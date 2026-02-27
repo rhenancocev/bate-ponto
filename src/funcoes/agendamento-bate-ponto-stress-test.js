@@ -11,47 +11,55 @@ function buildDate(baseDate, hour, minute) {
 }
 
 async function cronActiveStressTest(ctx, bot) {
-  // evita iniciar se já existir agenda
-if (schedulerState.isAgendaAtiva()) {
-  console.log('[STRESS] Cancelando agenda atual para iniciar stress...');
-  scheduleEngine.cancelarJobsExistentes();
-  schedulerState.finalizarAgenda();
-  persistence.limpar();
-}
 
-  scheduleEngine.cancelarJobsExistentes();
+  // se já existir agenda → limpa tudo
+  if (schedulerState.isAgendaAtiva()) {
+    console.log('[STRESS] Cancelando agenda atual para iniciar stress...');
+    scheduleEngine.cancelarJobsExistentes();
+    schedulerState.finalizarAgenda();
+    persistence.limpar();
+  }
 
   schedulerState.setModo('stress');
 
-  const today = new Date();
   const chatId = ctx;
 
+  const hoje = new Date();
+  const amanha = new Date(hoje);
+  amanha.setDate(amanha.getDate() + 1);
+
   await bot.sendMessage(chatId,
-`DATA: ${today.toLocaleDateString('pt-BR')}
+`DATA: ${hoje.toLocaleDateString('pt-BR')}
 
   Os preparativos vai ser as 23:30
   O termino dos preparativos vai ser as 23:59
   Sua entrada vai ser 00:01
-  Sua entrada do almoço vai ser 5:00
-  Sua saída do almoço vai ser 6:01
+  Sua entrada do almoço vai ser 05:00
+  Sua saída do almoço vai ser 06:01
   Sua saída vai ser 06:48
 
 STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
   );
 
+  /**
+   * IMPORTANTE:
+   * Jobs antes da meia-noite = hoje
+   * Jobs depois da meia-noite = amanhã
+   */
   const jobs = [
-    { name: 'prep_inicio', hour: 23, minute: 30 },
-    { name: 'prep_fim', hour: 23, minute: 59 },
-    { name: 'entrada', hour: 0, minute: 1 },
-    { name: 'almoco', hour: 5, minute: 0 },
-    { name: 'volta_almoco', hour: 6, minute: 1 },
-    { name: 'saida', hour: 6, minute: 48 }
+    { name: 'prep_inicio', base: hoje, hour: 23, minute: 30 },
+    { name: 'prep_fim', base: hoje, hour: 23, minute: 59 },
+
+    { name: 'entrada', base: amanha, hour: 0, minute: 1 },
+    { name: 'almoco', base: amanha, hour: 5, minute: 0 },
+    { name: 'volta_almoco', base: amanha, hour: 6, minute: 1 },
+    { name: 'saida', base: amanha, hour: 6, minute: 48 }
   ];
 
-  // salva estado para recovery
+  // ---------- PERSISTÊNCIA ----------
   persistence.salvar({
     tipo: 'stress',
-    dia: today.toISOString(),
+    dia: hoje.toISOString(),
     horarios: Object.fromEntries(
       jobs.map(j => [
         j.name,
@@ -60,29 +68,35 @@ STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
     )
   });
 
-  schedulerState.iniciarAgenda(today.toDateString());
+  schedulerState.iniciarAgenda(hoje.toDateString());
 
+  // ---------- AGENDAMENTO ----------
   jobs.forEach(job => {
-    const dataExecucao = buildDate(today, job.hour, job.minute);
-    console.log(`[STRESS][AGENDADO] ${job.name}`, dataExecucao.toString());
+    const dataExecucao = buildDate(job.base, job.hour, job.minute);
+
+    // proteção extra (nunca agenda passado)
+    if (dataExecucao <= new Date()) {
+      console.log(`[STRESS] Ignorado (passado): ${job.name}`);
+      return;
+    }
+    console.log(`[STRESS][AGENDADO] ${job.name}`,dataExecucao.toString());
 
     scheduleEngine.scheduleOnce(job.name, dataExecucao, async () => {
       await bot.sendMessage(chatId, `Executando ${job.name}`);
       await bate_ponto.aponta(chatId, bot);
 
-      // último job
+      // ---------- ÚLTIMO JOB ----------
       if (job.name === 'saida') {
-        await bot.sendMessage(chatId,'Stress Test finalizado. Operação normal voltará em 13 horas.');
+        await bot.sendMessage(chatId,'Stress Test finalizado. Operação normal voltará em 14 horas.');
 
         schedulerState.finalizarAgenda();
         schedulerState.setModo('normal');
         persistence.limpar();
 
-        const dataRetorno = new Date();
-        dataRetorno.setHours(dataRetorno.getHours() + 13);
+        const dataRetorno = new Date(Date.now() + 14 * 60 * 60 * 1000);
         console.log('[STRESS] retorno agendado para:', dataRetorno);
 
-        scheduleEngine.scheduleOnce('retorno_normal', dataRetorno, () => cronActive(chatId, bot, 18, true));
+        scheduleEngine.scheduleOnce('retorno_normal',dataRetorno,() => cronActive(chatId, bot, 18, true));
       }
     });
   });
