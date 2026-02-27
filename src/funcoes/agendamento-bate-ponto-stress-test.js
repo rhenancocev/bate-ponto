@@ -24,12 +24,12 @@ async function cronActiveStressTest(ctx, bot) {
 
   const chatId = ctx;
 
-  const hoje = new Date();
-  const amanha = new Date(hoje);
-  amanha.setDate(amanha.getDate() + 1);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
   await bot.sendMessage(chatId,
-`DATA: ${hoje.toLocaleDateString('pt-BR')}
+`DATA: ${today.toLocaleDateString('pt-BR')}
 
   Os preparativos vai ser as 23:30
   O termino dos preparativos vai ser as 23:59
@@ -41,25 +41,19 @@ async function cronActiveStressTest(ctx, bot) {
 STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
   );
 
-  /**
-   * IMPORTANTE:
-   * Jobs antes da meia-noite = hoje
-   * Jobs depois da meia-noite = amanhã
-   */
   const jobs = [
-    { name: 'prep_inicio', base: hoje, hour: 23, minute: 30 },
-    { name: 'prep_fim', base: hoje, hour: 23, minute: 59 },
-
-    { name: 'entrada', base: amanha, hour: 0, minute: 1 },
-    { name: 'almoco', base: amanha, hour: 5, minute: 0 },
-    { name: 'volta_almoco', base: amanha, hour: 6, minute: 1 },
-    { name: 'saida', base: amanha, hour: 6, minute: 48 }
+    { name: 'prep_inicio', base: today, hour: 23, minute: 30 },
+    { name: 'prep_fim', base: today, hour: 23, minute: 59 },
+    { name: 'entrada', base: tomorrow, hour: 0, minute: 1 },
+    { name: 'almoco', base: tomorrow, hour: 5, minute: 0 },
+    { name: 'volta_almoco', base: tomorrow, hour: 6, minute: 1 },
+    { name: 'saida', base: tomorrow, hour: 6, minute: 48 }
   ];
 
   // ---------- PERSISTÊNCIA ----------
   persistence.salvar({
     tipo: 'stress',
-    dia: hoje.toISOString(),
+    dia: today.toISOString(),
     horarios: Object.fromEntries(
       jobs.map(j => [
         j.name,
@@ -68,7 +62,7 @@ STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
     )
   });
 
-  schedulerState.iniciarAgenda(hoje.toDateString());
+  schedulerState.iniciarAgenda(today.toDateString());
 
   // ---------- AGENDAMENTO ----------
   jobs.forEach(job => {
