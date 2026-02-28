@@ -14,7 +14,7 @@ module.exports = async (ctx, bot) => {
     Object.keys(jobs).forEach(jobName => {
       schedule.cancelJob(jobName);
     });
-
+    
     await bot.sendMessage(chatId,`${total} schedule(s) cancelado(s) com sucesso.`);
   } else {
     bot.sendMessage(chatId,`${nome}, você não está autorizado para utilizar o bot.`);
