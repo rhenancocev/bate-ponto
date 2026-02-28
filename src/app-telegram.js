@@ -1,5 +1,6 @@
 const env = require('../config');
 const agendamento = require('./funcoes/agendamento-bate-ponto');
+const start_schedule_manual = require('./rotas/start-schedule-manual');
 const start_schedule = require('./rotas/start-schedule');
 const start_schedule_1he = require('./rotas/start-schedule-1he');
 const start_schedule_stress_test = require('./rotas/start-schedule-stress-test');
@@ -71,5 +72,6 @@ bot.on('text', (ctx) => {
     case '/reboot': reboot_application(ctx, bot); break;
     case '/trabalhar': trabalhar_feriado(ctx, bot); break;
     case '/folga': folga(ctx, bot); break;
+    case '/schedule': start_schedule_manual(ctx, bot); break;
   }
 });

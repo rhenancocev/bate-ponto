@@ -1,8 +1,8 @@
 const bate_ponto = require('./bate-ponto');
 const random = require('../helpers/random');
-
 const { setModo } = require('../helpers/scheduler-state');
 const scheduleEngine = require('../helpers/schedule-engine');
+const schedulerState = require('../helpers/scheduler-state');
 const persistence = require('../helpers/scheduler-persistence');
 
 const { cronActive } = require('./agendamento-bate-ponto');
@@ -90,6 +90,7 @@ STATUS: AGUARDANDO SCHEDULE (Modo Inter)`
     await bot.sendMessage(chatId,`Iniciando saída inter 00:${minuto_saida_inter}`);
     await bate_ponto.aponta(chatId, bot);
     await bot.sendMessage(chatId,'Turno madrugada finalizado. Retornando ao modo normal em 30 segundos...');
+    schedulerState.finalizarAgenda();
     setModo('normal');
     persistence.limpar();
     setTimeout(() => {
