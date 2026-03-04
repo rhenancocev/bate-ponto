@@ -15,7 +15,7 @@ function scheduleOnce(name, date, callback) {
     schedule.cancelJob(name);
   }
 
-  console.log('[AGENDADO]', name, date.toString());
+  console.log('[AGENDADO]', date.toString());
 
   schedule.scheduleJob(name, date, async () => {
     try {

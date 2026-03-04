@@ -14,7 +14,7 @@ module.exports = async (ctx, bot) => {
 
     if(hora === undefined || minuto === undefined || entradaesaida === undefined){
         bot.sendMessage(chatId, nome + ", você precisa inserir os parametros.\n"
-                        + "\n Exemplo: /schedule entradaesaida hora minuto"
+                        + "\n Exemplo: /schedule entrada_e_saida hora minuto"
                         + "\n Exemplo: /schedule entrada_e_saida hora_entrada minuto_entrada hora_saida minuto_saida");
     }else{
         if (chatId == chat_id){
