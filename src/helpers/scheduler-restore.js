@@ -41,7 +41,7 @@ async function restaurar(bot, chatId) {
       continue;
     }
     algumJobRestaurado = true;
-    console.log('[RESTORE][AGENDADO]', nome, dataExecucao.toString());
+    console.log('[RESTORE][AGENDADO]', dataExecucao.toString());
     scheduleEngine.scheduleOnce(nome, dataExecucao, async () => {
       try {
         const executar = async () => {
