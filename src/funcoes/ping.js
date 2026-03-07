@@ -1,5 +1,6 @@
 const env = require('../../config');
 const puppeteer = require('puppeteer');
+const { getSenhaAtual } = require('../helpers/gestao-de-senha');
 
 function ping (ctx,bot) {(async () => {
 
@@ -19,10 +20,20 @@ function ping (ctx,bot) {(async () => {
     try{
     //configurando timeout ilimitado
     page.setDefaultNavigationTimeout(0);
-    const HOST = env.HOST
+    const { HOST, ID_EMPRESA, MATRICULA } = env;
+    const SENHA = getSenhaAtual();
     
     //acessando a pagina de ponto
-    await page.goto(HOST);
+    await page.goto(HOST, { waitUntil: 'networkidle2' });
+
+    await page.type('[name="CD_EMPGCB_FUN"]', ID_EMPRESA);
+    await page.type('[name="CD_FUN"]', MATRICULA);
+    await page.type('[name="CD_USRSGR_SNH_CPL"]', SENHA);
+
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: 'networkidle2' }),
+        page.click('[name="NM_BOT_PRC"]')
+    ]);
 
     //bate um print
     await page.screenshot({ path: 'ping.png' });

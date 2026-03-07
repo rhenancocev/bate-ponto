@@ -30,8 +30,8 @@ RUN apt-get update && apt-get install -y \
     && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package.json ./
-RUN npm install
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
 COPY . .
 

@@ -12,6 +12,7 @@ const ultimo_ponto = require('./rotas/ultimo-ponto');
 const reboot_application = require('./rotas/reboot-application');
 const trabalhar_feriado = require('./rotas/trabalhar');
 const folga = require('./rotas/folga');
+const update_password = require('./rotas/mudar-senha');
 const { restaurar } = require('./helpers/scheduler-restore');
 const persistence = require('./helpers/scheduler-persistence');
 const chat_id = env.CHAT_ID;
@@ -73,5 +74,6 @@ bot.on('text', (ctx) => {
     case '/trabalhar': trabalhar_feriado(ctx, bot); break;
     case '/folga': folga(ctx, bot); break;
     case '/schedule': start_schedule_manual(ctx, bot); break;
+    case '/mudar_senha': update_password(ctx, bot); break;
   }
 });

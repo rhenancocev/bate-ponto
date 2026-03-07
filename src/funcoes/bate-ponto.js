@@ -1,4 +1,5 @@
 const env = require('../../config');
+const { getSenhaAtual } = require('../helpers/gestao-de-senha');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
@@ -25,7 +26,8 @@ async function aponta(ctx, bot) {
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(30000);
 
-    const { HOST, ID_EMPRESA, MATRICULA, SENHA } = env;
+    const { HOST, ID_EMPRESA, MATRICULA } = env;
+    const SENHA = getSenhaAtual();
 
     await page.goto(HOST, { waitUntil: 'networkidle2' });
 
