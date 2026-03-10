@@ -16,8 +16,10 @@ const update_password = require('./rotas/mudar-senha');
 const my_password = require('./rotas/minha-senha');
 const { restaurar } = require('./helpers/scheduler-restore');
 const persistence = require('./helpers/scheduler-persistence');
+const tratarEstado = require('./handlers/state-handler');
 const chat_id = env.CHAT_ID;
 const horasaida = 18;
+const estadoUsuarios = {};
 const bot = require('./tokenAcesso/serverTelegramBot');
 process.env.NTBA_FIX_350 = 1;
 process.env.NTBA_FIX_319 = 1;
@@ -61,21 +63,31 @@ process.on('unhandledRejection', err => {
 });
 
 bot.on('text', (ctx) => {
-  const comando = ctx.text.split(" ")[0];
+
+  const chatId = ctx.chat.id;
+  const texto = ctx.text?.trim();
+  if (!texto) return;
+
+  // 🔹 Se usuário tem estado ativo
+  if (estadoUsuarios[chatId]) {
+    return tratarEstado(ctx, bot, estadoUsuarios[chatId], estadoUsuarios);
+  }
+
+  const comando = texto.split(" ")[0];
   switch (comando) {
-    case '/start': start_schedule(ctx, bot); break;
-    case '/1he_start': start_schedule_1he(ctx, bot); break;
-    case '/stress_test_schedule': start_schedule_stress_test(ctx, bot); break;
-    case '/inter': start_schedule_inter(ctx, bot); break;
-    case '/stop': stop_schedule(ctx, bot); break;
-    case '/aponta': aponta(ctx, bot); break;
-    case '/ping': ping(ctx, bot); break;
-    case '/ponto': ultimo_ponto(ctx, bot); break;
-    case '/reboot': reboot_application(ctx, bot); break;
-    case '/trabalhar': trabalhar_feriado(ctx, bot); break;
-    case '/folga': folga(ctx, bot); break;
-    case '/schedule': start_schedule_manual(ctx, bot); break;
-    case '/mudar_senha': update_password(ctx, bot); break;
-    case '/senha_atual': my_password(ctx, bot); break;
+    case '/start': return start_schedule(ctx, bot);
+    case '/1he_start': return start_schedule_1he(ctx, bot);
+    case '/stress_test_schedule': return start_schedule_stress_test(ctx, bot);
+    case '/inter': return start_schedule_inter(ctx, bot);
+    case '/stop': return stop_schedule(ctx, bot);
+    case '/aponta': return aponta(ctx, bot);
+    case '/ping': return ping(ctx, bot);
+    case '/ponto': return ultimo_ponto(ctx, bot);
+    case '/reboot': return reboot_application(ctx, bot);
+    case '/trabalhar': return trabalhar_feriado(ctx, bot);
+    case '/folga': return folga(ctx, bot);
+    case '/schedule': return start_schedule_manual(ctx, bot);
+    case '/mudar_senha': return update_password(ctx, bot, estadoUsuarios);
+    case '/senha_atual': return my_password(ctx, bot);
   }
 });

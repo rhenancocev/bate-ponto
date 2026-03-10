@@ -3,28 +3,20 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { getSenhaAtual, saveNovaSenha } = require('../helpers/gestao-de-senha');
 
-function getNovaSenhaFromCommand(ctx) {
-  if (!ctx || !ctx.text) return null;
-  const parts = ctx.text.trim().split(/\s+/);
-  return parts[1] || null;
-}
-
-async function updatePassword(ctx, bot) {
+async function updatePassword(chatId, bot, novaSenha) {
 
   let browser;
-  const chatId = ctx && ctx.chat ? ctx.chat.id : null;
 
   try {
     const { HOST, ID_EMPRESA, MATRICULA } = env;
     const senhaAtual = getSenhaAtual();
-    const novaSenha = getNovaSenhaFromCommand(ctx);
 
     if (!senhaAtual) {
       throw new Error('Senha atual nao encontrada em data/config.json');
     }
 
     if (!novaSenha) {
-      throw new Error('Informe a nova senha no comando. Exemplo: /mudar_senha 123456');
+      throw new Error('Nova senha inválida.');
     }
 
     browser = await puppeteer.launch({
@@ -79,7 +71,6 @@ async function updatePassword(ctx, bot) {
     await page.screenshot({ path: 'senha_alterada.png' });
 
     if (chatId) {
-      await bot.sendMessage(chatId, "Senha alterada com sucesso:");
       await bot.sendMediaGroup(chatId, [
       { type: 'photo', media: fs.createReadStream('senha_alterada.png') }
       ]);
@@ -87,7 +78,7 @@ async function updatePassword(ctx, bot) {
 
     await page.click('[id="NM_BOT_FIM"]');
     if (chatId) {
-      await bot.sendMessage(chatId, "Processo finalizado!");
+      await bot.sendMessage(chatId, "✅ Senha alterada com sucesso!");
     }
 
   } catch (error) {

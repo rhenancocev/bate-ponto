@@ -1,9 +1,7 @@
 const env = require('../../config');
-const senha = require('../funcoes/mudar-senha');
-
 const chat_id = env.CHAT_ID;
 
-module.exports = async (ctx, bot) => {
+module.exports = async (ctx, bot, estadoUsuarios) => {
 
   const chatId = ctx.chat.id;
   const nome = ctx.from.first_name;
@@ -11,6 +9,6 @@ module.exports = async (ctx, bot) => {
   if (chatId != chat_id) {
     return bot.sendMessage(chatId,`${nome}, você não está autorizado para utilizar o bot.`);
   }
-  await bot.sendMessage(chatId,`${nome}, foi solicitado a alteracão de senha. Iniciando processo...`);
-  await senha.updatePassword(ctx, bot);
+  estadoUsuarios[chatId] = { acao: 'mudar_senha' };
+  return bot.sendMessage(chatId, `🔐 ${nome}, foi solicitado a alteracão de senha. Digite a nova senha:`);
 };

@@ -19,8 +19,10 @@ async function cronActiveManual(ctx, bot, horaentrada, minutoentrada, horasaida,
 
   setModo('manual');
 
-  const today = new Date();
   const chatId = ctx;
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
   // ---------------- RANDOM ----------------
 
@@ -41,12 +43,14 @@ STATUS: AGUARDANDO SCHEDULE (Modo Manual)`
   );
 
   // ---------------- DATAS ----------------
+  const dataExecucao = buildDate(today, hora_entrada, minuto_entrada);
+  const now = new Date();
+  const entradaManual = dataExecucao > now ? dataExecucao : buildDate(tomorrow, hora_entrada, minuto_entrada);
 
-  const entradaManual = buildDate(today, hora_entrada, minuto_entrada);
-  if(horasaida !== undefined && minutosaida !== undefined){
-    var saidaManual = buildDate(today, hora_saida, minuto_saida);
-  } else {
-    var saidaManual = undefined
+  let saidaManual;
+  if (horasaida !== undefined && minutosaida !== undefined) {
+    const dataSaida = buildDate(today, hora_saida, minuto_saida);
+    saidaManual = dataSaida > now ? dataSaida : buildDate(tomorrow, hora_saida, minuto_saida);
   }
 
   // ---------------- PERSISTÊNCIA ----------------
