@@ -25,7 +25,7 @@ spec:
 
       containers:
         - name: bpgcb
-          image: rhenancocev/bpgcb:2.3.0
+          image: rhenancocev/bpgcb:2.3.3
           imagePullPolicy: IfNotPresent
           lifecycle:
             preStop:

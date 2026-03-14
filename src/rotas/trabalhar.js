@@ -1,39 +1,21 @@
-const empresa = require('../helpers/ignore-feriados-e-add-folgas');
+const env = require('../../config');
+const chat_id = env.CHAT_ID;
 
-module.exports = async (ctx, bot) => {
+module.exports = async (ctx, bot, estadoUsuarios) => {
 
   const chatId = ctx.chat.id;
+  const nome = ctx.from.first_name;
 
-  // remove múltiplos espaços
-  const args = ctx.text.trim().split(/\s+/);
-
-  if (!args[1]) {
-    return bot.sendMessage(chatId, "Use: /trabalhar DD-MM-AAAA");
+  if (chatId != chat_id) {
+    return bot.sendMessage(chatId, `${nome}, você não está autorizado para utilizar o bot.`);
   }
 
-  const partes = args[1].replace(/\//g, '-').split('-');
-  const [dia, mes, ano] = partes;
+  estadoUsuarios[chatId] = {
+    acao: 'trabalhar',
+    step: 1,
+    dados: {},
+    startedAt: Date.now()
+  };
 
-  if (!dia || !mes || !ano) {
-    return bot.sendMessage(chatId, "Formato inválido. Use DD-MM-AAAA");
-  }
-
-  const dataISO = `${ano}-${mes.padStart(2,'0')}-${dia.padStart(2,'0')}`;
-
-  // valida se data existe de verdade
-  const testeData = new Date(`${dataISO}T00:00:00-03:00`);
-  if (isNaN(testeData.getTime())) {
-    return bot.sendMessage(chatId, "Data inválida.");
-  }
-
-  // garante consistência:
-  // se marcar como trabalho, remove da folga
-  empresa.removerFolga(dataISO);
-
-  empresa.adicionar(dataISO);
-
-  await bot.sendMessage(
-    chatId,
-    `Dia ${args[1]} marcado como DIA ÚTIL pela empresa.`
-  );
+  return bot.sendMessage(chatId, `📅 ${nome}, digite a data que deseja marcar como dia útil.\nFormato: DD-MM-AAAA`);
 };

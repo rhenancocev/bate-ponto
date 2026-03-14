@@ -84,9 +84,9 @@ bot.on('text', (ctx) => {
     case '/ping': return ping(ctx, bot);
     case '/ponto': return ultimo_ponto(ctx, bot);
     case '/reboot': return reboot_application(ctx, bot);
-    case '/trabalhar': return trabalhar_feriado(ctx, bot);
-    case '/folga': return folga(ctx, bot);
-    case '/schedule': return start_schedule_manual(ctx, bot);
+    case '/trabalhar': return trabalhar_feriado(ctx, bot, estadoUsuarios);
+    case '/folga': return folga(ctx, bot, estadoUsuarios);
+    case '/schedule': return start_schedule_manual(ctx, bot, estadoUsuarios);
     case '/mudar_senha': return update_password(ctx, bot, estadoUsuarios);
     case '/senha_atual': return my_password(ctx, bot);
   }

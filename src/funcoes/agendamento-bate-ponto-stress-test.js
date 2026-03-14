@@ -4,9 +4,9 @@ const schedulerState = require('../helpers/scheduler-state');
 const persistence = require('../helpers/scheduler-persistence');
 const { cronActive } = require('./agendamento-bate-ponto'); // normal
 
-function buildDate(baseDate, hour, minute) {
+function buildDate(baseDate, hour, minute, second = 0) {
   const d = new Date(baseDate);
-  d.setHours(hour, minute, 0, 0);
+  d.setHours(hour, minute, second, 0);
   return d;
 }
 
@@ -33,10 +33,10 @@ async function cronActiveStressTest(ctx, bot) {
 
   Os preparativos vai ser as 23:30
   O termino dos preparativos vai ser as 23:59
-  Sua entrada vai ser 00:01
+  Sua entrada vai ser 00:00
   Sua entrada do almoço vai ser 05:00
-  Sua saída do almoço vai ser 06:01
-  Sua saída vai ser 06:48
+  Sua saída do almoço vai ser 16:00
+  Sua saída vai ser 19:48
 
 STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
   );
@@ -44,10 +44,10 @@ STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
   const jobs = [
     { name: 'prep_inicio', base: today, hour: 23, minute: 30 },
     { name: 'prep_fim', base: today, hour: 23, minute: 59 },
-    { name: 'entrada', base: tomorrow, hour: 0, minute: 1 },
+    { name: 'entrada', base: tomorrow, hour: 0, minute: 0, second: 30 },
     { name: 'almoco', base: tomorrow, hour: 5, minute: 0 },
-    { name: 'volta_almoco', base: tomorrow, hour: 6, minute: 1 },
-    { name: 'saida', base: tomorrow, hour: 6, minute: 48 }
+    { name: 'volta_almoco', base: tomorrow, hour: 16, minute: 0 },
+    { name: 'saida', base: tomorrow, hour: 19, minute: 48 }
   ];
 
   // ---------- PERSISTÊNCIA ----------
@@ -81,16 +81,12 @@ STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
 
       // ---------- ÚLTIMO JOB ----------
       if (job.name === 'saida') {
-        await bot.sendMessage(chatId,'Stress Test finalizado. Operação normal voltará em 14 horas.');
+        await bot.sendMessage(chatId,'Stress Test finalizado. Voltaremos ao modo normal em 30 segundos...');
 
         schedulerState.finalizarAgenda();
         schedulerState.setModo('normal');
-        persistence.limpar();
-
-        const dataRetorno = new Date(Date.now() + 14 * 60 * 60 * 1000);
-        console.log('[STRESS] retorno agendado para:', dataRetorno);
-
-        scheduleEngine.scheduleOnce('retorno_normal',dataRetorno,() => cronActive(chatId, bot, 18, true));
+        persistence.limpar()
+        setTimeout(() => {cronActive(chatId, bot, 18, true);}, 30000);
       }
     });
   });

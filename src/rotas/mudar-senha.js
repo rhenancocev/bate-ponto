@@ -9,6 +9,13 @@ module.exports = async (ctx, bot, estadoUsuarios) => {
   if (chatId != chat_id) {
     return bot.sendMessage(chatId,`${nome}, você não está autorizado para utilizar o bot.`);
   }
-  estadoUsuarios[chatId] = { acao: 'mudar_senha' };
+
+  estadoUsuarios[chatId] = {
+    acao: 'mudar_senha',
+    step: 1,
+    dados: {},
+    startedAt: Date.now()
+  };
+
   return bot.sendMessage(chatId, `🔐 ${nome}, foi solicitado a alteracão de senha. Digite a nova senha:`);
 };

@@ -12,14 +12,13 @@ function buildDate(baseDate, hour, minute) {
   return d;
 }
 
-async function cronActiveManual(ctx, bot, horaentrada, minutoentrada, horasaida, minutosaida, entradaesaida) {
+async function cronActiveManual(chatId, bot, horaentrada, minutoentrada, horasaida, minutosaida, entradaesaida) {
 
   // engine controla cancelamento
   scheduleEngine.cancelarJobsExistentes();
 
   setModo('manual');
 
-  const chatId = ctx;
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -35,7 +34,7 @@ async function cronActiveManual(ctx, bot, horaentrada, minutoentrada, horasaida,
 `DATA: ${today.toLocaleDateString('pt-BR')}
 
   Sua entrada vai ser ${hora_entrada}:${minuto_entrada}
-  ${entradaesaida === "true"
+  ${entradaesaida === "sim"
     ? `Sua saída vai ser ${hora_saida}:${minuto_saida}`
     : 'Sem horário de saída definido'}
 
@@ -54,7 +53,7 @@ STATUS: AGUARDANDO SCHEDULE (Modo Manual)`
   }
 
   // ---------------- PERSISTÊNCIA ----------------
-  if (entradaesaida === "true") {
+  if (entradaesaida === "sim") {
     persistence.salvar({
       tipo: 'manual',
       dia: today.toISOString(),
@@ -71,7 +70,7 @@ STATUS: AGUARDANDO SCHEDULE (Modo Manual)`
   scheduleEngine.scheduleOnce('entrada_manual', entradaManual, async () => {
     await bot.sendMessage(chatId, `Iniciando entrada ${hora_entrada}:${minuto_entrada}`);
     await bate_ponto.aponta(chatId, bot);
-    if (entradaesaida === "false") {
+    if (entradaesaida === "nao") {
       await bot.sendMessage(chatId,'Schedule manual finalizado. Retornando ao modo normal em 30 segundos...');
       schedulerState.finalizarAgenda();
       setModo('normal');
@@ -83,7 +82,7 @@ STATUS: AGUARDANDO SCHEDULE (Modo Manual)`
   });
 
   // ---------- ÚLTIMO JOB ----------
-  if (entradaesaida === "true" && horasaida !== undefined && minutosaida !== undefined) {
+  if (entradaesaida === "sim" && horasaida !== undefined && minutosaida !== undefined) {
     scheduleEngine.scheduleOnce('saida_manual', saidaManual, async () => {
       await bot.sendMessage(chatId,`Iniciando saída manual ${hora_saida}:${minuto_saida}`);
       await bate_ponto.aponta(chatId, bot);

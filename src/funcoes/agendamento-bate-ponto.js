@@ -13,7 +13,7 @@ function buildDate(baseDate, hour, minute) {
   return d;
 }
 
-async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
+async function cronActive(chatId, bot, horasaida, forceNextDay = false) {
   // evita duplicação
   if (schedulerState.isAgendaAtiva()) {
     console.log('[SCHEDULER] Agenda já ativa');
@@ -23,7 +23,6 @@ async function cronActive(ctx, bot, horasaida, forceNextDay = false) {
   // limpa jobs antigos
   scheduleEngine.cancelarJobsExistentes();
 
-  const chatId = ctx;
   const today = new Date();
   // dia base
   let diaExecucao = getExecutionDay(today);
