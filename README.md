@@ -27,13 +27,13 @@ k delete ValidatingWebhookConfiguration gatekeeper-validating-webhook-configurat
 buildar a imagem do docker:
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t rhenancocev/bpgcb:2.1.9 \
+  -t rhenancocev/bpgcb:2.6.5 \
   --push .
 
 --new command:
 docker buildx build \                                                         
   --platform linux/amd64 \
-  -t rhenancocev/bpgcb:2.6.4 \
+  -t rhenancocev/bpgcb:2.6.5 \
   --push .
 
 kubectl create secret generic bp-secrets \

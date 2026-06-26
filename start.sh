@@ -14,6 +14,6 @@ sleep 30
 
 echo "Aplicando novo deployment..."
 kubectl apply -f deployment.yml -n awx-prd
-kubectl apply -f pvc.yml -n awx-prd
+#kubectl apply -f pvc.yml -n awx-prd
 
 echo "Processo finalizado."
