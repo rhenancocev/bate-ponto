@@ -1,9 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
   name: bpgcb
+  namespace: awx-prd
+
 spec:
   replicas: 1
+
   strategy:
     type: Recreate
 
@@ -18,6 +22,7 @@ spec:
 
     spec:
       restartPolicy: Always
+
       terminationGracePeriodSeconds: 30
 
       imagePullSecrets:
@@ -25,12 +30,13 @@ spec:
 
       containers:
         - name: bpgcb
-          image: rhenancocev/bpgcb:2.3.3
-          imagePullPolicy: IfNotPresent
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 5"]
+
+          image: rhenancocev/bpgcb:2.6.5
+          imagePullPolicy: Always
+
+          env:
+            - name: PUPPETEER_EXECUTABLE_PATH
+              value: /usr/bin/chromium
 
           envFrom:
             - secretRef:
@@ -38,11 +44,20 @@ spec:
 
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "200m"
+              cpu: 200m
+              memory: 256Mi
+
             limits:
-              memory: "512Mi"
-              cpu: "200m"
+              cpu: 400m
+              memory: 512Mi
+
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - sleep 5
 
           volumeMounts:
             - name: data

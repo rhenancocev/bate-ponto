@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Mudando para o contexto do akspriv-awx-prd"
-kubectx akspriv-awx-prd-admin
+kubectx akspriv-awxv2-prd-admin
 
 echo "Mudando para o namespace awx-prd"
 kubens awx-prd

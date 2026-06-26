@@ -31,7 +31,7 @@ async function cronActiveStressTest(ctx, bot) {
   await bot.sendMessage(chatId,
 `DATA: ${today.toLocaleDateString('pt-BR')}
 
-  Os preparativos vai ser as 23:30
+  Os preparativos vai ser as 23:00
   O termino dos preparativos vai ser as 23:59
   Sua entrada vai ser 00:00
   Sua entrada do almoço vai ser 05:00
@@ -42,7 +42,7 @@ STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
   );
 
   const jobs = [
-    { name: 'prep_inicio', base: today, hour: 23, minute: 30 },
+    { name: 'prep_inicio', base: today, hour: 23, minute: 0 },
     { name: 'prep_fim', base: today, hour: 23, minute: 59 },
     { name: 'entrada', base: tomorrow, hour: 0, minute: 0, second: 30 },
     { name: 'almoco', base: tomorrow, hour: 5, minute: 0 },
@@ -73,7 +73,7 @@ STATUS: AGUARDANDO SCHEDULE - Stress Test Ativo`
       console.log(`[STRESS] Ignorado (passado): ${job.name}`);
       return;
     }
-    console.log(`[STRESS][AGENDADO] ${job.name}`,dataExecucao.toString());
+    //console.log(`[STRESS][AGENDADO] ${job.name}`,dataExecucao.toString());
 
     scheduleEngine.scheduleOnce(job.name, dataExecucao, async () => {
       await bot.sendMessage(chatId, `Executando ${job.name}`);

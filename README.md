@@ -30,14 +30,19 @@ docker buildx build \
   -t rhenancocev/bpgcb:2.1.9 \
   --push .
 
+--new command:
+docker buildx build \                                                         
+  --platform linux/amd64 \
+  -t rhenancocev/bpgcb:2.6.4 \
+  --push .
 
 kubectl create secret generic bp-secrets \
   --from-literal=HOST=https://10.228.0.70/bahia/gateway \
   --from-literal=ID_EMPRESA=49 \
   --from-literal=MATRICULA=60012569 \
-  --from-literal=SENHA=Olivia33 \
+  --from-literal=SENHA=Olivia39 \
   --from-literal=CHAT_ID=621550962 \
-  --from-literal=TOKEN=5729154399:AAH5wBO81je4rsPFjcJv_D98kU7m_Wb8HM4 \
+  --from-literal=TOKEN=5729154399:AAGrDemsYo2mReJf7rDroA0wMolSa1VJhaE \
   --from-literal=CONFIG_SECRET_KEY=79278e724b05a759631db730a5ee4a4b7063e686296011712701c52b111b41f8
 
 kubectl create secret docker-registry secret-automation \                        

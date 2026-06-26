@@ -1,0 +1,22 @@
+{
+  "tipo": "normal",
+  "dia": "2026-05-19T05:20:00.440Z",
+  "horarios": {
+    "entrada": {
+      "hour": 9,
+      "minute": 8
+    },
+    "almoco": {
+      "hour": 12,
+      "minute": 28
+    },
+    "volta": {
+      "hour": 13,
+      "minute": 30
+    },
+    "saida": {
+      "hour": 18,
+      "minute": 58
+    }
+  }
+}

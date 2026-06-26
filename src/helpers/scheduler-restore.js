@@ -37,11 +37,11 @@ async function restaurar(bot, chatId) {
 
     // tolerância de 2 minutos
     if (dataExecucao.getTime() < now.getTime() - 120000) {
-      console.log(`[RESTORE] Ignorado (já passou): ${nome}`);
+      //console.log(`[RESTORE] Ignorado (já passou): ${nome}`);
       continue;
     }
     algumJobRestaurado = true;
-    console.log('[RESTORE][AGENDADO]', dataExecucao.toString());
+    //console.log('[RESTORE][AGENDADO]', dataExecucao.toString());
     scheduleEngine.scheduleOnce(nome, dataExecucao, async () => {
       try {
         const executar = async () => {
@@ -70,7 +70,7 @@ async function restaurar(bot, chatId) {
   }
   // nenhum job futuro → dia já acabou
   if (!algumJobRestaurado) {
-    console.log('[RESTORE] Dia já finalizado. Criando próximo dia útil...');
+    //console.log('[RESTORE] Dia já finalizado. Criando próximo dia útil...');
     setTimeout(() => {
       cronActive(chatId, bot, 18, true);
     }, 5000);

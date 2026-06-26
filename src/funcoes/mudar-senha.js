@@ -20,6 +20,10 @@ async function updatePassword(chatId, bot, novaSenha) {
     }
 
     browser = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium',
+      headless: true,
+      ignoreHTTPSErrors: true,
+      protocolTimeout: 120000,
       args: [
         '--disable-setuid-sandbox',
         '--no-sandbox',
@@ -28,65 +32,108 @@ async function updatePassword(chatId, bot, novaSenha) {
         '--disable-gpu',
         '--no-zygote',
         '--single-process'
-      ],
-      executablePath: '/usr/bin/chromium',
-      ignoreHTTPSErrors: true, 
-      headless: true
+      ]
     });
 
     const page = await browser.newPage();
-    page.setDefaultNavigationTimeout(30000);
+    page.setDefaultTimeout(120000);
+    page.setDefaultNavigationTimeout(120000);
 
-    await page.goto(HOST, { waitUntil: 'networkidle2' });
+    await page.goto(HOST, {
+      waitUntil: 'domcontentloaded',
+      timeout: 120000
+    });
 
     await page.type('[name="CD_EMPGCB_FUN"]', ID_EMPRESA);
     await page.type('[name="CD_FUN"]', MATRICULA);
     await page.type('[name="CD_USRSGR_SNH_CPL"]', senhaAtual);
 
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle2' }),
-      page.click('[name="NM_BOT_PRC"]')
-    ]);
+    await page.evaluate(() => {
+      const el = document.querySelector('[name="NM_BOT_PRC"]');
+      if (el) el.click();
+    });
 
-    await page.click('body > form:nth-child(2) > table:nth-child(3) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > select:nth-child(1) > option:nth-child(1)');
+    await new Promise(r => setTimeout(r, 5000));
 
-    console.log("Processando...");
+    const selectSelector =
+      'body > form:nth-child(2) > table:nth-child(3) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > select:nth-child(1)';
 
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle2' }),
-      page.click('[name="NM_BOT_PRC"]')
-    ]);
+    const valorOption = await page.$eval(
+      selectSelector,
+      select => {
+        if (select.options.length >= 1) {
+          return select.options[0].value;
+        }
+        return null;
+      }
+    );
+
+    if (!valorOption) {
+      throw new Error('Não foi possível encontrar a opção de troca de senha');
+    }
+
+    await page.select(selectSelector, valorOption);
+
+    console.log('Processando alteração de senha...');
+
+    await page.evaluate(() => {
+      const el = document.querySelector('[name="NM_BOT_PRC"]');
+      if (el) el.click();
+    });
+
+    await new Promise(r => setTimeout(r, 5000));
 
     await page.type('[name="CD_ANT_USR_SGR"]', senhaAtual);
     await page.type('[name="CD_NVA_USR_SGR"]', novaSenha);
     await page.type('[name="CD_REG_NVA_USR_SGR"]', novaSenha);
 
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle2' }),
-      page.click('[id="NM_BOT_PRC"]')
-    ]);
+    await page.evaluate(() => {
+      const el = document.querySelector('#NM_BOT_PRC');
+      if (el) el.click();
+    });
+
+    await new Promise(r => setTimeout(r, 8000));
 
     saveNovaSenha(novaSenha);
 
-    await page.screenshot({ path: 'senha_alterada.png' });
+    await page.screenshot({
+      path: 'senha_alterada.png',
+      fullPage: true
+    });
 
     if (chatId) {
+
       await bot.sendMediaGroup(chatId, [
-      { type: 'photo', media: fs.createReadStream('senha_alterada.png') }
+        {
+          type: 'photo',
+          media: fs.createReadStream('senha_alterada.png')
+        }
       ]);
+
+      await bot.sendMessage(
+        chatId,
+        '✅ Senha alterada com sucesso!'
+      );
     }
 
-    await page.click('[id="NM_BOT_FIM"]');
-    if (chatId) {
-      await bot.sendMessage(chatId, "✅ Senha alterada com sucesso!");
-    }
+    await page.evaluate(() => {
+      const el = document.querySelector('#NM_BOT_FIM');
+      if (el) el.click();
+    });
 
   } catch (error) {
-    console.error("Erro ao alterar senha:", error);
+
+    console.error('Erro ao alterar senha:', error);
+
     if (chatId) {
-      await bot.sendMessage(chatId, "Erro ao alterar senha:\n" + error.message);
+      await bot.sendMessage(
+        chatId,
+        'Erro ao alterar senha:\n' + error.message
+      );
     }
+
   } finally {
+
     if (browser) {
       await browser.close();
     }
